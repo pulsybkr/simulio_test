@@ -8,7 +8,7 @@ export default class extends BaseSchema {
       table.increments('id').primary()
 
       table.string('name', 255).notNullable()
-      table.integer('client_id').unsigned().references('id').inTable('clients').onDelete('CASCADE')
+      table.integer('client_id').unsigned().nullable().references('id').inTable('clients').onDelete('CASCADE')
       table.integer('created_by_id').unsigned().references('id').inTable('users').onDelete('CASCADE')
 
       // Paramètres de la simulation

@@ -75,7 +75,7 @@
                         {{ simulation.name }}
                       </h4>
                       <p class="text-sm text-gray-500">
-                        Client: {{ simulation.client.fullName }}
+                        Client: {{ simulation.client ? simulation.client.fullName : 'Aucun client assigné' }}
                       </p>
                     </div>
 

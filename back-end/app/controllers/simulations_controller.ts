@@ -28,11 +28,20 @@ export default class SimulationsController {
           return response.ok({ simulations: [] })
         }
       } else if (user.role === 'agent') {
-        // Les agents voient les simulations de leurs clients
+        // Les agents voient les simulations de leurs clients + simulations sans client
         const clientIds = await Client.query()
           .where('assignedAgentId', user.id)
           .select('id')
-        query = query.whereIn('clientId', clientIds.map(c => c.id))
+        
+        if (clientIds.length > 0) {
+          query = query.where((subQuery) => {
+            subQuery.whereIn('clientId', clientIds.map(c => c.id))
+                    .orWhereNull('clientId')
+          })
+        } else {
+          // Si l'agent n'a pas de clients, il voit seulement les simulations sans client
+          query = query.whereNull('clientId')
+        }
       }
       // Les admins voient toutes les simulations
 
@@ -65,12 +74,12 @@ export default class SimulationsController {
             id: simulation.id,
             name: simulation.name,
             status: simulation.status,
-            client: {
+            client: simulation.client ? {
               id: simulation.client.id,
               firstName: simulation.client.firstName,
               lastName: simulation.client.lastName,
               fullName: simulation.client.fullName,
-            },
+            } : null,
             createdBy: {
               id: simulation.createdBy.id,
               firstName: simulation.createdBy.firstName,
@@ -96,30 +105,41 @@ export default class SimulationsController {
   async store({ request, response, auth }: HttpContext) {
     try {
       const user = auth.user!
+      
+      // Vérifier que les clients ne peuvent pas créer de simulations
+      if (user.role === 'client') {
+        return response.forbidden({
+          message: 'Les clients ne peuvent pas créer de nouvelles simulations',
+        })
+      }
+      
       console.log('Données reçues du frontend:', request.body())
       const payload = await request.validateUsing(createSimulationValidator)
       console.log('Données validées:', payload)
 
-      // Vérifier que le client existe et que l'utilisateur a les droits
-      const client = await Client.find(payload.clientId)
+      // Vérifier que le client existe et que l'utilisateur a les droits (si un client est spécifié)
+      let client = null
+      if (payload.clientId) {
+        client = await Client.find(payload.clientId)
 
-      if (!client) {
-        return response.notFound({
-          message: 'Client non trouvé',
-        })
-      }
+        if (!client) {
+          return response.notFound({
+            message: 'Client non trouvé',
+          })
+        }
 
-      // Vérifier les permissions
-      if (user.role === 'agent' && client.assignedAgentId !== user.id) {
-        return response.forbidden({
-          message: 'Vous n\'avez pas les permissions pour créer une simulation pour ce client',
-        })
+        // Vérifier les permissions
+        if (user.role === 'agent' && client.assignedAgentId !== user.id) {
+          return response.forbidden({
+            message: 'Vous n\'avez pas les permissions pour créer une simulation pour ce client',
+          })
+        }
       }
 
       // Créer la simulation avec sérialisation manuelle des paramètres
       const simulation = new Simulation()
       simulation.name = payload.name
-      simulation.clientId = payload.clientId
+      simulation.clientId = payload.clientId || null
       simulation.createdById = user.id
       simulation.parameters = JSON.stringify(payload.parameters)
       simulation.status = 'pending'
@@ -128,7 +148,10 @@ export default class SimulationsController {
       // Lancer le calcul en arrière-plan
       this.processSimulation(simulation.id)
 
-      await simulation.load('client')
+      // Charger les relations seulement si elles existent
+      if (simulation.clientId) {
+        await simulation.load('client')
+      }
       await simulation.load('createdBy')
 
       // Parser les paramètres pour le frontend
@@ -189,8 +212,8 @@ export default class SimulationsController {
           })
         }
       } else if (user.role === 'agent') {
-        // Vérifier que la simulation appartient à un client de l'agent
-        if (simulation.client.assignedAgentId !== user.id) {
+        // Vérifier que la simulation appartient à un client de l'agent ou n'a pas de client
+        if (simulation.client && simulation.client.assignedAgentId !== user.id) {
           return response.forbidden({
             message: 'Vous n\'avez pas accès à cette simulation',
           })
@@ -258,12 +281,16 @@ export default class SimulationsController {
           message: 'Vous n\'avez pas les permissions pour modifier une simulation',
         })
       } else if (user.role === 'agent') {
-        const client = await Client.find(simulation.clientId)
-        if (!client || client.assignedAgentId !== user.id) {
-          return response.forbidden({
-            message: 'Vous n\'avez pas les permissions pour modifier cette simulation',
-          })
+        // Si la simulation a un client, vérifier qu'il appartient à l'agent
+        if (simulation.clientId) {
+          const client = await Client.find(simulation.clientId)
+          if (!client || client.assignedAgentId !== user.id) {
+            return response.forbidden({
+              message: 'Vous n\'avez pas les permissions pour modifier cette simulation',
+            })
+          }
         }
+        // Si pas de client, l'agent peut modifier (simulation créée par lui)
       }
 
       // Si les paramètres changent, relancer le calcul

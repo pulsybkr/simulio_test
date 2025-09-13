@@ -78,7 +78,7 @@ export interface Simulation {
   status: 'pending' | 'processing' | 'completed' | 'failed'
   parameters: SimulationParameters
   results: SimulationResults | null
-  client: Client
+  client?: Client
   createdBy: User
   createdAt: string
   updatedAt: string
@@ -106,10 +106,11 @@ export interface ClientForm {
   phone: string
   address: string
   assignedAgentId?: number
+  password?: string
 }
 
 export interface SimulationForm {
   name: string
-  clientId: number
+  clientId?: number
   parameters: SimulationParameters
 }

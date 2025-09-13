@@ -16,7 +16,6 @@ export const useSimulationStore = defineStore('simulation', () => {
 
     try {
       const data = await simulationService.getSimulations(clientId)
-      console.log('data', data)
       simulations.value = data
     } catch (err) {
       error.value = 'Erreur lors du chargement des simulations'
@@ -33,6 +32,7 @@ export const useSimulationStore = defineStore('simulation', () => {
     try {
       const data = await simulationService.getSimulation(id)
       currentSimulation.value = data
+      console.log('data', data)
       return data
     } catch (err) {
       error.value = 'Erreur lors du chargement de la simulation'
@@ -45,7 +45,7 @@ export const useSimulationStore = defineStore('simulation', () => {
 
   async function createSimulation(data: {
     name: string
-    clientId: number
+    clientId?: number
     parameters: SimulationParameters
   }) {
     isLoading.value = true
@@ -66,7 +66,7 @@ export const useSimulationStore = defineStore('simulation', () => {
 
   async function updateSimulation(id: number, data: Partial<{
     name: string
-    clientId: number
+    clientId?: number
     parameters: SimulationParameters
   }>) {
     isLoading.value = true

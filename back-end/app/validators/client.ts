@@ -8,6 +8,14 @@ export const createClientValidator = vine.compile(
     phone: vine.string().regex(/^[\+]?[1-9][\d]{0,15}$/).optional(),
     address: vine.string().maxLength(500).optional(),
     assignedAgentId: vine.number().positive().optional(),
+    password: vine
+      .string()
+      .minLength(8)
+      .maxLength(100)
+      .regex(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]/, {
+        message: 'Le mot de passe doit contenir au moins une majuscule, une minuscule, un chiffre et un caractère spécial',
+      })
+      .optional(),
   })
 )
 

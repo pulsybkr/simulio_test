@@ -104,21 +104,6 @@
           </div>
         </div>
 
-        <!-- Sélection du rôle (optionnel) -->
-        <div class="mb-4">
-          <label class="block text-sm font-medium text-gray-700 mb-2">
-            Type de compte (optionnel)
-          </label>
-          <select
-            v-model="form.role"
-            class="appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
-          >
-            <option value="">Choisir un rôle</option>
-            <option value="client">Client</option>
-            <option value="agent">Agent</option>
-            <option value="admin">Administrateur</option>
-          </select>
-        </div>
 
         <!-- Erreurs générales -->
         <div v-if="errorMessage" class="rounded-md bg-red-50 p-4">
@@ -194,7 +179,7 @@ const form = reactive({
   email: '',
   password: '',
   password_confirmation: '',
-  role: 'client' as 'client' | 'agent' | 'admin' | '',
+  role: 'admin' as 'client' | 'agent' | 'admin' | '',
 })
 
 const errors = reactive({
@@ -273,7 +258,7 @@ const handleSubmit = async () => {
       email: form.email,
       password: form.password,
       password_confirmation: form.password_confirmation,
-      role: form.role || undefined,
+      role: 'admin',
     }
 
     console.log('Données envoyées:', registerData)

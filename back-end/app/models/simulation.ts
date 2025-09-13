@@ -49,7 +49,7 @@ export default class Simulation extends BaseModel {
   declare name: string
 
   @column()
-  declare clientId: number
+  declare clientId: number | null
 
   @column()
   declare createdById: number

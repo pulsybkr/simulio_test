@@ -87,10 +87,29 @@ export default class ClientsController {
         assignedAgentId: payload.assignedAgentId || (user.role === 'agent' ? user.id : null),
       })
 
+      // Créer un compte utilisateur si un mot de passe est fourni
+      let userAccount = null
+      if (payload.password && payload.email) {
+        try {
+          userAccount = await User.create({
+            firstName: payload.firstName,
+            lastName: payload.lastName,
+            email: payload.email,
+            password: payload.password,
+            role: 'client',
+            isActive: true,
+          })
+        } catch (userError) {
+          // Si la création de l'utilisateur échoue, supprimer le client créé
+          await client.delete()
+          throw new Error('Erreur lors de la création du compte utilisateur: ' + userError.message)
+        }
+      }
+
       await client.load('assignedAgent')
 
       return response.created({
-        message: 'Client créé avec succès',
+        message: userAccount ? 'Client et compte utilisateur créés avec succès' : 'Client créé avec succès',
         client: {
           id: client.id,
           firstName: client.firstName,
@@ -102,6 +121,11 @@ export default class ClientsController {
           createdAt: client.createdAt,
           fullName: client.fullName,
         },
+        userAccount: userAccount ? {
+          id: userAccount.id,
+          email: userAccount.email,
+          role: userAccount.role,
+        } : null,
       })
     } catch (error) {
       return response.badRequest({

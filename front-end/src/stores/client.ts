@@ -49,6 +49,7 @@ export const useClientStore = defineStore('client', () => {
     phone?: string
     address?: string
     assignedAgentId?: number
+    password?: string
   }) {
     isLoading.value = true
     error.value = null

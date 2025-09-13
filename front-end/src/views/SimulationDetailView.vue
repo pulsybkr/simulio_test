@@ -1,6 +1,6 @@
 <template>
-  <div class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
-    <div class="px-4 py-6 sm:px-0">
+  <div class="p-6">
+    <div>
       <!-- Header -->
       <div class="mb-8">
         <div class="flex items-center justify-between">
@@ -20,6 +20,13 @@
               ← Retour à la liste
             </router-link>
             <Button
+              v-if="authStore.isAdmin || authStore.isAgent"
+              @click="openEditModal"
+              variant="outline"
+            >
+              Modifier les paramètres
+            </Button>
+            <Button
               v-if="simulation?.status === 'completed'"
               @click="exportResults"
             >
@@ -29,34 +36,56 @@
         </div>
       </div>
 
-      <!-- Statut de la simulation -->
-      <div class="mb-6">
+      <!-- Statut et informations générales -->
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+        <!-- Statut de la simulation -->
         <div class="bg-white shadow rounded-lg p-6">
-          <div class="flex items-center justify-between">
-            <div class="flex items-center space-x-4">
-              <div
-                class="w-4 h-4 rounded-full"
-                :class="{
-                  'bg-yellow-400': simulation?.status === 'processing',
-                  'bg-green-400': simulation?.status === 'completed',
-                  'bg-red-400': simulation?.status === 'failed',
-                  'bg-gray-400': simulation?.status === 'pending'
-                }"
-              ></div>
-              <div>
-                <h3 class="text-lg font-medium text-gray-900">
-                  Statut: {{ getStatusLabel(simulation?.status) }}
-                </h3>
-                <p class="text-sm text-gray-500">
-                  Créée le {{ formatDate(simulation?.createdAt) }} par {{ simulation?.createdBy?.fullName }}
-                </p>
+          <div class="flex items-center space-x-4">
+            <div
+              class="w-4 h-4 rounded-full"
+              :class="{
+                'bg-yellow-400': simulation?.status === 'processing',
+                'bg-green-400': simulation?.status === 'completed',
+                'bg-red-400': simulation?.status === 'failed',
+                'bg-gray-400': simulation?.status === 'pending'
+              }"
+            ></div>
+            <div>
+              <h3 class="text-lg font-medium text-gray-900">
+                Statut: {{ getStatusLabel(simulation?.status) }}
+              </h3>
+              <p class="text-sm text-gray-500">
+                Créée le {{ formatDate(simulation?.createdAt) }} par {{ simulation?.createdBy?.fullName }}
+              </p>
+              <div v-if="simulation?.status === 'processing'" class="flex items-center space-x-2 mt-2">
+                <div class="animate-spin rounded-full h-4 w-4 border-b-2 border-indigo-600"></div>
+                <span class="text-sm text-gray-600">Calcul en cours...</span>
               </div>
             </div>
+          </div>
+        </div>
 
-            <div v-if="simulation?.status === 'processing'" class="flex items-center space-x-2">
-              <div class="animate-spin rounded-full h-5 w-5 border-b-2 border-indigo-600"></div>
-              <span class="text-sm text-gray-600">Calcul en cours...</span>
+        <!-- Client assigné -->
+        <div class="bg-white shadow rounded-lg p-6">
+          <div class="flex items-center justify-between">
+            <div>
+              <h3 class="text-lg font-medium text-gray-900">Client</h3>
+              <div v-if="simulation?.client" class="mt-2">
+                <p class="text-sm font-medium text-gray-900">{{ simulation.client.fullName }}</p>
+                <p class="text-sm text-gray-500">{{ simulation.client.email }}</p>
+              </div>
+              <div v-else class="mt-2">
+                <p class="text-sm text-gray-500">Aucun client assigné</p>
+              </div>
             </div>
+            <Button
+              v-if="!simulation?.client && (authStore.isAdmin || authStore.isAgent)"
+              @click="openClientModal"
+              variant="outline"
+              size="sm"
+            >
+              Assigner un client
+            </Button>
           </div>
         </div>
       </div>
@@ -161,11 +190,20 @@
               </div>
             </Card>
 
-            <!-- Tableau d'amortissement -->
-            <Card class="p-6">
-              <h3 class="text-lg font-medium text-gray-900 mb-4">
-                Tableau d'amortissement (aperçu)
-              </h3>
+            <!-- Tableau d'amortissement (optionnel) -->
+            <Card v-if="showAmortizationTable" class="p-6">
+              <div class="flex items-center justify-between mb-4">
+                <h3 class="text-lg font-medium text-gray-900">
+                  Tableau d'amortissement
+                </h3>
+                <Button
+                  @click="showAmortizationTable = false"
+                  variant="outline"
+                  size="sm"
+                >
+                  Masquer
+                </Button>
+              </div>
 
               <div class="overflow-x-auto">
                 <table class="min-w-full divide-y divide-gray-200">
@@ -193,14 +231,14 @@
                   </thead>
                   <tbody class="bg-white divide-y divide-gray-200">
                     <tr
-                      v-for="entry in simulation.results"
+                      v-for="entry in paginatedAmortizationTable"
                       :key="entry.period"
                     >
                       <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                         {{ entry.period }}
                       </td>
                       <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {{ entry.date }}
+                        {{ formatDate(entry.date) }}
                       </td>
                       <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                         {{ formatCurrency(entry.payment) }}
@@ -218,12 +256,52 @@
                   </tbody>
                 </table>
 
-                <div v-if="simulation.results.amortizationTable.length > 12" class="text-center mt-4">
-                  <p class="text-sm text-gray-500">
-                    Affichage des 12 premières mensualités sur {{ simulation.results.amortizationTable.length }} au total
-                  </p>
+                <!-- Pagination -->
+                <div v-if="totalAmortizationPages > 1" class="flex items-center justify-between mt-4">
+                  <div class="text-sm text-gray-500">
+                    Affichage de {{ (currentAmortizationPage - 1) * itemsPerPage + 1 }} à 
+                    {{ Math.min(currentAmortizationPage * itemsPerPage, simulation.results.amortizationTable.length) }} 
+                    sur {{ simulation.results.amortizationTable.length }} entrées
+                  </div>
+                  <div class="flex space-x-2">
+                    <Button
+                      @click="currentAmortizationPage--"
+                      :disabled="currentAmortizationPage === 1"
+                      variant="outline"
+                      size="sm"
+                    >
+                      Précédent
+                    </Button>
+                    <span class="px-3 py-1 text-sm text-gray-700">
+                      Page {{ currentAmortizationPage }} sur {{ totalAmortizationPages }}
+                    </span>
+                    <Button
+                      @click="currentAmortizationPage++"
+                      :disabled="currentAmortizationPage === totalAmortizationPages"
+                      variant="outline"
+                      size="sm"
+                    >
+                      Suivant
+                    </Button>
+                  </div>
                 </div>
               </div>
+            </Card>
+
+            <!-- Bouton pour afficher le tableau d'amortissement -->
+            <Card v-else class="p-6 text-center">
+              <h3 class="text-lg font-medium text-gray-900 mb-2">
+                Tableau d'amortissement
+              </h3>
+              <p class="text-sm text-gray-500 mb-4">
+                Consultez le détail mensuel de votre remboursement
+              </p>
+              <Button
+                @click="showAmortizationTable = true"
+                variant="outline"
+              >
+                Afficher le tableau d'amortissement
+              </Button>
             </Card>
           </div>
 
@@ -259,30 +337,288 @@
         </div>
       </div>
     </div>
+
+    <!-- Modal d'édition des paramètres -->
+    <Modal
+      :is-open="showEditModal"
+      title="Modifier les paramètres"
+      size="lg"
+      @close="closeEditModal"
+    >
+      <div v-if="editParameters" class="space-y-6">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">
+              Montant du prêt (€)
+            </label>
+            <Input
+              v-model.number="editParameters.loanAmount"
+              type="number"
+              placeholder="250000"
+            />
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">
+              Durée (années)
+            </label>
+            <select
+              v-model.number="editParameters.duration"
+              class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+            >
+              <option value="10">10 ans</option>
+              <option value="15">15 ans</option>
+              <option value="20">20 ans</option>
+              <option value="25">25 ans</option>
+              <option value="30">30 ans</option>
+            </select>
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">
+              Taux d'intérêt annuel (%)
+            </label>
+            <Input
+              v-model.number="editParameters.interestRate"
+              type="number"
+              step="0.01"
+              placeholder="3.5"
+            />
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">
+              Apport (€)
+            </label>
+            <Input
+              v-model.number="editParameters.downPayment"
+              type="number"
+              placeholder="50000"
+            />
+          </div>
+        </div>
+      </div>
+
+      <template #footer>
+        <div class="flex justify-end space-x-3">
+          <Button
+            @click="closeEditModal"
+            variant="outline"
+          >
+            Annuler
+          </Button>
+          <Button
+            @click="saveParameters"
+            :disabled="isUpdating"
+          >
+            <span v-if="isUpdating">Mise à jour...</span>
+            <span v-else>Sauvegarder et recalculer</span>
+          </Button>
+        </div>
+      </template>
+    </Modal>
+
+    <!-- Modal d'assignation de client -->
+    <Modal
+      :is-open="showClientModal"
+      title="Assigner un client"
+      size="md"
+      @close="closeClientModal"
+    >
+      <div class="space-y-4">
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">
+            Choisir un client existant
+          </label>
+          <select
+            v-model="selectedClientId"
+            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+          >
+            <option value="">Sélectionner un client</option>
+            <option
+              v-for="client in clients"
+              :key="client.id"
+              :value="client.id"
+            >
+              {{ client.fullName }} - {{ client.email }}
+            </option>
+          </select>
+        </div>
+
+        <div class="text-center">
+          <p class="text-sm text-gray-500 mb-2">ou</p>
+          <Button
+            @click="openCreateClientModal"
+            variant="outline"
+          >
+            Créer un nouveau client
+          </Button>
+        </div>
+      </div>
+
+      <template #footer>
+        <div class="flex justify-end space-x-3">
+          <Button
+            @click="closeClientModal"
+            variant="outline"
+          >
+            Annuler
+          </Button>
+          <Button
+            @click="assignClient"
+            :disabled="!selectedClientId || isAssigningClient"
+          >
+            <span v-if="isAssigningClient">Attribution...</span>
+            <span v-else>Assigner</span>
+          </Button>
+        </div>
+      </template>
+    </Modal>
+
+    <!-- Modal de création de client -->
+    <CreateClientModal
+      :is-open="showCreateClientModal"
+      @close="closeCreateClientModal"
+      @client-created="handleClientCreated"
+    />
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import { useRoute } from 'vue-router'
 import { useSimulationStore } from '@/stores/simulation'
+import { useClientStore } from '@/stores/client'
+import { useAuthStore } from '@/stores/auth'
 import Card from '@/components/ui/Card.vue'
 import Button from '@/components/ui/Button.vue'
+import Input from '@/components/ui/Input.vue'
+import Modal from '@/components/ui/Modal.vue'
+import CreateClientModal from '@/components/ui/CreateClientModal.vue'
+import type { SimulationParameters } from '@/types'
 
 const route = useRoute()
 const simulationStore = useSimulationStore()
+const clientStore = useClientStore()
+const authStore = useAuthStore()
 
 const simulation = ref(null)
+const showAmortizationTable = ref(false)
+const currentAmortizationPage = ref(1)
+const itemsPerPage = ref(20)
+
+// Modal states
+const showEditModal = ref(false)
+const showClientModal = ref(false)
+const showCreateClientModal = ref(false)
+const editParameters = ref<SimulationParameters | null>(null)
+const selectedClientId = ref('')
+const isUpdating = ref(false)
+const isAssigningClient = ref(false)
+
+// Computed properties
+const clients = computed(() => clientStore.clients)
+
+const paginatedAmortizationTable = computed(() => {
+  if (!simulation.value?.results?.amortizationTable) return []
+  
+  const start = (currentAmortizationPage.value - 1) * itemsPerPage.value
+  const end = start + itemsPerPage.value
+  return simulation.value.results.amortizationTable.slice(start, end)
+})
+
+const totalAmortizationPages = computed(() => {
+  if (!simulation.value?.results?.amortizationTable) return 0
+  return Math.ceil(simulation.value.results.amortizationTable.length / itemsPerPage.value)
+})
 
 onMounted(async () => {
   const simulationId = route.params.id as string
   try {
     simulation.value = await simulationStore.fetchSimulation(parseInt(simulationId))
+    // Charger les clients pour le modal d'assignation
+    await clientStore.fetchClients()
   } catch (error) {
     console.error('Erreur lors du chargement de la simulation:', error)
   }
 })
 
+// Modal functions
+const openEditModal = () => {
+  if (simulation.value?.parameters) {
+    editParameters.value = { ...simulation.value.parameters }
+    showEditModal.value = true
+  }
+}
+
+const closeEditModal = () => {
+  showEditModal.value = false
+  editParameters.value = null
+}
+
+const saveParameters = async () => {
+  if (!editParameters.value || !simulation.value) return
+  
+  isUpdating.value = true
+  try {
+    const updatedSimulation = await simulationStore.updateSimulation(
+      simulation.value.id,
+      { parameters: editParameters.value }
+    )
+    simulation.value = updatedSimulation
+    closeEditModal()
+  } catch (error) {
+    console.error('Erreur lors de la mise à jour:', error)
+  } finally {
+    isUpdating.value = false
+  }
+}
+
+const openClientModal = () => {
+  selectedClientId.value = ''
+  showClientModal.value = true
+}
+
+const closeClientModal = () => {
+  showClientModal.value = false
+  selectedClientId.value = ''
+}
+
+const assignClient = async () => {
+  if (!selectedClientId.value || !simulation.value) return
+  
+  isAssigningClient.value = true
+  try {
+    const updatedSimulation = await simulationStore.updateSimulation(
+      simulation.value.id,
+      { clientId: parseInt(selectedClientId.value) }
+    )
+    simulation.value = updatedSimulation
+    closeClientModal()
+  } catch (error) {
+    console.error('Erreur lors de l\'assignation:', error)
+  } finally {
+    isAssigningClient.value = false
+  }
+}
+
+const openCreateClientModal = () => {
+  closeClientModal()
+  showCreateClientModal.value = true
+}
+
+const closeCreateClientModal = () => {
+  showCreateClientModal.value = false
+}
+
+const handleClientCreated = (newClient: any) => {
+  // Sélectionner automatiquement le nouveau client
+  selectedClientId.value = newClient.id.toString()
+  // Rouvrir le modal d'assignation
+  showClientModal.value = true
+}
+
+// Utility functions
 const formatCurrency = (amount: number) => {
   return new Intl.NumberFormat('fr-FR', {
     style: 'currency',
@@ -309,8 +645,17 @@ const exportResults = () => {
   console.log('Export des résultats')
 }
 
-const retrySimulation = () => {
-  // TODO: Implémenter le retry de simulation
-  console.log('Retry simulation')
+const retrySimulation = async () => {
+  if (!simulation.value) return
+  
+  try {
+    const updatedSimulation = await simulationStore.updateSimulation(
+      simulation.value.id,
+      { parameters: simulation.value.parameters }
+    )
+    simulation.value = updatedSimulation
+  } catch (error) {
+    console.error('Erreur lors du retry:', error)
+  }
 }
 </script>

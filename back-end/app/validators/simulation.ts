@@ -3,7 +3,7 @@ import vine from '@vinejs/vine'
 export const createSimulationValidator = vine.compile(
   vine.object({
     name: vine.string().trim().minLength(1).maxLength(255),
-    clientId: vine.number().positive(),
+    clientId: vine.number().positive().optional(),
     parameters: vine.object({
       loanAmount: vine.number().positive().max(10000000), // Max 10M€
       duration: vine.number().positive().min(1).max(30), // 1-30 ans

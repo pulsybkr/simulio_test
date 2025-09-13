@@ -96,25 +96,3 @@ router.group(() => {
 })
 .prefix('/admin')
 .use(middleware.auth({ roles: ['admin'] }))
-
-/*
-|--------------------------------------------------------------------------
-| API v1 (Versionnée)
-|--------------------------------------------------------------------------
-*/
-
-router.group(() => {
-  // Authentification
-  router.post('/auth/register', [AuthController, 'register'])
-  router.post('/auth/login', [AuthController, 'login'])
-  router.post('/auth/logout', [AuthController, 'logout']).use(middleware.auth())
-  router.get('/auth/me', [AuthController, 'me']).use(middleware.auth())
-  router.post('/auth/refresh', [AuthController, 'refresh']).use(middleware.auth())
-
-  // Clients
-  router.resource('/clients', ClientsController).use('*', middleware.auth({ roles: ['admin', 'agent'] }))
-
-  // Simulations
-  router.resource('/simulations', SimulationsController).use('*', middleware.auth())
-})
-.prefix('/api/v1')

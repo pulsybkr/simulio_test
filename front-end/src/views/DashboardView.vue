@@ -1,6 +1,6 @@
 <template>
-  <div class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
-    <div class="px-4 py-6 sm:px-0">
+  <div class="p-6">
+    <div>
       <div class="mb-8">
         <h1 class="text-3xl font-bold text-gray-900">
           Bienvenue, {{ authStore.fullName }}
@@ -105,6 +105,7 @@
           </h3>
           <div class="flex flex-wrap gap-4">
             <router-link
+              v-if="authStore.isAdmin || authStore.isAgent"
               to="/simulate"
               class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700"
             >
@@ -124,6 +125,14 @@
               </svg>
               Gérer les clients
             </router-link>
+
+            <!-- Message pour les clients -->
+            <div v-if="authStore.role === 'client'" class="text-center py-4">
+              <p class="text-gray-600">
+                Consultez vos simulations dans l'onglet "Simulations". 
+                Contactez votre agent pour créer de nouvelles simulations.
+              </p>
+            </div>
           </div>
         </div>
       </div>
@@ -180,7 +189,7 @@
                       {{ simulation.name }}
                     </h4>
                     <p class="text-sm text-gray-500">
-                      Client: {{ simulation.client.fullName }}
+                      Client: {{ simulation.client ? simulation.client.fullName : 'Aucun client assigné' }}
                     </p>
                   </div>
                 </div>
