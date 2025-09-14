@@ -1,4 +1,3 @@
-// Types pour l'authentification
 export interface User {
   id: number
   firstName: string
@@ -10,7 +9,6 @@ export interface User {
   createdAt: string
 }
 
-// Types pour les clients
 export interface Client {
   id: number
   firstName: string
@@ -30,7 +28,6 @@ export interface Client {
   createdAt: string
 }
 
-// Types pour les simulations
 export interface SimulationParameters {
   loanAmount: number
   duration: number
@@ -84,7 +81,6 @@ export interface Simulation {
   updatedAt: string
 }
 
-// Types pour les formulaires
 export interface LoginForm {
   email: string
   password: string

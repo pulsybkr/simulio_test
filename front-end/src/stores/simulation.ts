@@ -9,7 +9,6 @@ export const useSimulationStore = defineStore('simulation', () => {
   const isLoading = ref(false)
   const error = ref<string | null>(null)
 
-  // Actions
   async function fetchSimulations(clientId?: number) {
     isLoading.value = true
     error.value = null
@@ -53,7 +52,7 @@ export const useSimulationStore = defineStore('simulation', () => {
 
     try {
       const newSimulation = await simulationService.createSimulation(data)
-      simulations.value.unshift(newSimulation) // Ajouter au début de la liste
+      simulations.value.unshift(newSimulation) 
       return newSimulation
     } catch (err) {
       error.value = 'Erreur lors de la création de la simulation'
@@ -75,7 +74,6 @@ export const useSimulationStore = defineStore('simulation', () => {
     try {
       const updatedSimulation = await simulationService.updateSimulation(id, data)
 
-      // Mettre à jour dans la liste
       const index = simulations.value.findIndex(s => s.id === id)
       if (index !== -1) {
         simulations.value[index] = updatedSimulation
@@ -102,7 +100,6 @@ export const useSimulationStore = defineStore('simulation', () => {
     try {
       await simulationService.deleteSimulation(id)
 
-      // Retirer de la liste
       simulations.value = simulations.value.filter(s => s.id !== id)
 
       if (currentSimulation.value?.id === id) {
@@ -125,19 +122,16 @@ export const useSimulationStore = defineStore('simulation', () => {
     currentSimulation.value = simulation
   }
 
-  // Calcul local pour prévisualisation
   function calculatePreview(params: SimulationParameters) {
     return simulationService.calculateSimulationLocally(params)
   }
 
   return {
-    // State
     simulations,
     currentSimulation,
     isLoading,
     error,
 
-    // Actions
     fetchSimulations,
     fetchSimulation,
     createSimulation,

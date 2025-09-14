@@ -39,7 +39,6 @@ class AuthService {
     const response = await api.post('/auth/login', credentials)
     const { user, token } = response.data
 
-    // Stocker le token et l'utilisateur dans le localStorage
     localStorage.setItem('auth_token', token.value)
     localStorage.setItem('user', JSON.stringify(user))
 
@@ -50,7 +49,7 @@ class AuthService {
     const response = await api.post('/auth/register', data)
     const { user, token } = response.data
 
-    // Stocker le token et l'utilisateur dans le localStorage
+    
     localStorage.setItem('auth_token', token.value)
     localStorage.setItem('user', JSON.stringify(user))
 
@@ -61,7 +60,6 @@ class AuthService {
     try {
       await api.post('/auth/logout')
     } finally {
-      // Toujours nettoyer le localStorage même si l'API échoue
       localStorage.removeItem('auth_token')
       localStorage.removeItem('user')
     }
@@ -72,12 +70,10 @@ class AuthService {
       const response = await api.get('/auth/me')
       const user = response.data.user
 
-      // Mettre à jour l'utilisateur dans le localStorage
       localStorage.setItem('user', JSON.stringify(user))
 
       return user
     } catch (error) {
-      // Si l'API échoue, essayer de récupérer depuis le localStorage
       const storedUser = localStorage.getItem('user')
       if (storedUser) {
         return JSON.parse(storedUser)

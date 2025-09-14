@@ -9,7 +9,6 @@ export const useClientStore = defineStore('client', () => {
   const isLoading = ref(false)
   const error = ref<string | null>(null)
 
-  // Actions
   async function fetchClients() {
     isLoading.value = true
     error.value = null
@@ -56,7 +55,7 @@ export const useClientStore = defineStore('client', () => {
 
     try {
       const newClient = await clientService.createClient(data)
-      clients.value.unshift(newClient) // Ajouter au début de la liste
+      clients.value.unshift(newClient) 
       return newClient
     } catch (err) {
       error.value = 'Erreur lors de la création du client'
@@ -81,7 +80,6 @@ export const useClientStore = defineStore('client', () => {
     try {
       const updatedClient = await clientService.updateClient(id, data)
 
-      // Mettre à jour dans la liste
       const index = clients.value.findIndex(c => c.id === id)
       if (index !== -1) {
         clients.value[index] = updatedClient
@@ -108,7 +106,6 @@ export const useClientStore = defineStore('client', () => {
     try {
       await clientService.deleteClient(id)
 
-      // Retirer de la liste
       clients.value = clients.value.filter(c => c.id !== id)
 
       if (currentClient.value?.id === id) {
@@ -132,13 +129,11 @@ export const useClientStore = defineStore('client', () => {
   }
 
   return {
-    // State
     clients,
     currentClient,
     isLoading,
     error,
 
-    // Actions
     fetchClients,
     fetchClient,
     createClient,

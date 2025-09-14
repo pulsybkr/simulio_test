@@ -1,7 +1,6 @@
 <template>
   <div class="max-w-7xl mx-auto py-4 sm:py-6 px-4 sm:px-6 lg:px-8">
     <div class="space-y-6">
-      <!-- Header -->
       <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
         <div>
           <h1 class="text-2xl sm:text-3xl font-bold text-gray-900">
@@ -12,7 +11,6 @@
           </p>
         </div>
 
-        <!-- Bouton Nouvelle Simulation seulement pour admin/agent -->
         <router-link
           v-if="!authStore.isClient"
           to="/simulate"
@@ -25,7 +23,6 @@
         </router-link>
       </div>
 
-      <!-- Filtres -->
       <div class="bg-white p-4 rounded-lg shadow-sm border border-gray-200">
         <div class="flex flex-col sm:flex-row gap-4">
           <div class="flex-1">
@@ -48,7 +45,6 @@
         </div>
       </div>
 
-      <!-- Liste des simulations -->
       <div class="bg-white shadow-sm rounded-lg border border-gray-200 overflow-hidden">
         <ul class="divide-y divide-gray-200">
           <li
@@ -56,11 +52,9 @@
             :key="simulation.id"
             class="hover:bg-gray-50 transition-colors duration-150"
           >
-            <!-- Version Desktop -->
             <div class="hidden sm:block px-6 py-4">
               <div class="flex items-center justify-between">
                 <div class="flex items-center space-x-4">
-                  <!-- Statut -->
                   <div
                     class="w-4 h-4 rounded-full flex-shrink-0"
                     :class="{
@@ -71,7 +65,6 @@
                     }"
                   ></div>
 
-                  <!-- Informations -->
                   <div class="flex-1 min-w-0">
                     <div class="flex items-center justify-between">
                       <div class="flex-1 min-w-0">
@@ -95,7 +88,6 @@
                   </div>
                 </div>
 
-                <!-- Actions -->
                 <div class="flex items-center space-x-4 ml-4">
                   <span
                     class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium whitespace-nowrap"
@@ -119,10 +111,8 @@
               </div>
             </div>
 
-            <!-- Version Mobile -->
             <div class="sm:hidden p-4">
               <div class="flex items-start space-x-3">
-                <!-- Statut -->
                 <div
                   class="w-4 h-4 rounded-full flex-shrink-0 mt-1"
                   :class="{
@@ -133,7 +123,6 @@
                   }"
                 ></div>
 
-                <!-- Contenu principal -->
                 <div class="flex-1 min-w-0">
                   <div class="flex items-start justify-between">
                     <div class="flex-1 min-w-0">
@@ -178,7 +167,6 @@
           </li>
         </ul>
 
-        <!-- État vide -->
         <div v-if="filteredSimulations.length === 0 && !isLoading" class="text-center py-12 px-6">
           <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
@@ -187,7 +175,6 @@
           <p class="mt-1 text-sm text-gray-500 max-w-sm mx-auto">
             {{ authStore.isClient ? 'Vos simulations apparaîtront ici une fois créées.' : 'Commencez par créer votre première simulation.' }}
           </p>
-          <!-- Bouton seulement pour admin/agent -->
           <div v-if="!authStore.isClient" class="mt-6">
             <router-link
               to="/simulate"
@@ -199,7 +186,6 @@
         </div>
       </div>
 
-      <!-- Loading state -->
       <div v-if="isLoading" class="text-center py-12">
         <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600 mx-auto"></div>
         <p class="mt-4 text-sm text-gray-500">Chargement des simulations...</p>
@@ -223,7 +209,6 @@ const statusFilter = ref('')
 const filteredSimulations = computed(() => {
   let simulations = simulationStore.simulations
 
-  // Filtre par recherche
   if (searchQuery.value) {
     const query = searchQuery.value.toLowerCase()
     simulations = simulations.filter(simulation =>
@@ -232,7 +217,6 @@ const filteredSimulations = computed(() => {
     )
   }
 
-  // Filtre par statut
   if (statusFilter.value) {
     simulations = simulations.filter(simulation => simulation.status === statusFilter.value)
   }

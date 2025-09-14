@@ -1,6 +1,5 @@
 <template>
   <div class="flex h-screen bg-gray-50">
-    <!-- Sidebar -->
     <div
       :class="[
         'bg-white shadow-lg transition-all duration-300 ease-in-out flex flex-col',
@@ -8,7 +7,6 @@
         isMobileMenuOpen ? 'fixed inset-y-0 left-0 z-50' : 'hidden lg:flex'
       ]"
     >
-      <!-- Header -->
       <div class="flex items-center justify-between p-4 border-b border-gray-200">
         <router-link
           to="/dashboard"
@@ -20,7 +18,6 @@
           {{ isCollapsed ? 'S' : 'Simulio' }}
         </router-link>
         
-        <!-- Toggle button -->
         <button
           @click="toggleSidebar"
           class="p-1.5 rounded-md text-gray-400 hover:text-gray-600 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 hidden lg:block"
@@ -29,7 +26,6 @@
           <ChevronRight v-else class="h-5 w-5" />
         </button>
 
-        <!-- Mobile close button -->
         <button
           @click="closeMobileMenu"
           class="p-1.5 rounded-md text-gray-400 hover:text-gray-600 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 lg:hidden"
@@ -38,7 +34,6 @@
         </button>
       </div>
 
-      <!-- Navigation -->
       <nav class="flex-1 px-2 py-4 space-y-1 overflow-y-auto">
         <router-link
           v-for="item in navigationItems"
@@ -64,7 +59,6 @@
           />
           <span v-if="!isCollapsed" class="truncate">{{ item.name }}</span>
           
-          <!-- Tooltip pour mode collapsed -->
           <div
             v-if="isCollapsed"
             class="absolute left-16 bg-gray-900 text-white text-xs rounded py-1 px-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none z-50 whitespace-nowrap"
@@ -74,7 +68,6 @@
         </router-link>
       </nav>
 
-      <!-- User Profile -->
       <div class="border-t border-gray-200 p-4">
         <div class="flex items-center">
           <div
@@ -107,16 +100,13 @@
       </div>
     </div>
 
-    <!-- Mobile overlay -->
     <div
       v-if="isMobileMenuOpen"
       class="fixed inset-0 bg-gray-600 bg-opacity-75 lg:hidden z-40"
       @click="closeMobileMenu"
     ></div>
 
-    <!-- Main content -->
     <div class="flex-1 flex flex-col overflow-hidden">
-      <!-- Mobile header -->
       <div class="lg:hidden bg-white shadow-sm border-b border-gray-200 px-4 py-2 flex items-center justify-between">
         <button
           @click="openMobileMenu"
@@ -129,7 +119,6 @@
           Simulio
         </router-link>
 
-        <!-- Mobile user menu -->
         <div class="relative">
           <button
             @click="handleLogout"
@@ -142,14 +131,12 @@
         </div>
       </div>
 
-      <!-- Page content -->
       <main class="flex-1 overflow-y-auto">
         <slot />
       </main>
     </div>
   </div>
 
-  <!-- Logout Confirmation Modal -->
   <LogoutModal
     :isOpen="showLogoutModal"
     @close="showLogoutModal = false"
@@ -195,7 +182,6 @@ const navigationItems = computed(() => {
     }
   ]
 
-  // Ajouter Clients seulement pour admin et agent
   if (authStore.isAdmin || authStore.isAgent) {
     items.splice(1, 0, {
       name: 'Clients',
@@ -204,8 +190,7 @@ const navigationItems = computed(() => {
     })
   }
 
-  // Ajouter Nouvelle Simulation seulement pour admin/agent
-  if (!authStore.isClient) {
+    if (!authStore.isClient) {
     items.push({
       name: 'Nouvelle Simulation',
       href: '/simulate',

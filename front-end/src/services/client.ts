@@ -26,7 +26,7 @@ class ClientService {
     await api.delete(`/clients/${id}`)
   }
 
-  // Récupérer les clients assignés à l'agent actuel
+  
   async getMyClients(): Promise<Client[]> {
     const response = await api.get('/clients')
     return response.data.clients

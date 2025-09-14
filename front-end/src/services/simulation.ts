@@ -32,33 +32,24 @@ class SimulationService {
   async deleteSimulation(id: number): Promise<void> {
     await api.delete(`/simulations/${id}`)
   }
-
-  // Méthode utilitaire pour calculer une simulation côté client (optionnel)
+  
   calculateSimulationLocally(params: SimulationParameters): SimulationResults {
-    // Calculs simplifiés côté client (pour la prévisualisation)
     const { loanAmount, duration, interestRate, insuranceRate, downPayment } = params
 
-    // Montant financé
     const financedAmount = loanAmount - downPayment
 
-    // Taux mensuel
     const monthlyRate = interestRate / 100 / 12
 
-    // Nombre de mensualités
     const numPayments = duration * 12
 
-    // Calcul de la mensualité (formule du prêt amortissable)
     const monthlyPayment = financedAmount *
       (monthlyRate * Math.pow(1 + monthlyRate, numPayments)) /
       (Math.pow(1 + monthlyRate, numPayments) - 1)
 
-    // Assurance mensuelle
     const monthlyInsurance = financedAmount * (insuranceRate / 100) / 12
 
-    // Total mensuel
     const totalMonthly = monthlyPayment + monthlyInsurance
 
-    // Calcul du coût total
     const totalCost = totalMonthly * numPayments
     const totalInterest = totalCost - financedAmount - (monthlyInsurance * numPayments)
 
@@ -67,8 +58,8 @@ class SimulationService {
       totalInterest: Math.round(totalInterest * 100) / 100,
       totalInsurance: Math.round(monthlyInsurance * numPayments * 100) / 100,
       totalCost: Math.round(totalCost * 100) / 100,
-      amortizationTable: [], // À implémenter si nécessaire
-      propertyValueEvolution: [], // À implémenter si nécessaire
+      amortizationTable: [],  
+      propertyValueEvolution: [], 
       salaryRequirement: Math.round(totalMonthly * 100 / 35)
     }
   }

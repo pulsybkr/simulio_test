@@ -20,7 +20,6 @@
         Le compte client a été créé avec succès. Voici les informations de connexion :
       </p>
 
-      <!-- Informations d'identification -->
       <div class="bg-gray-50 p-4 rounded-lg space-y-4 mb-6">
         <div class="flex items-center justify-between bg-white p-3 rounded border">
           <div>
@@ -67,7 +66,6 @@
         </div>
       </div>
 
-      <!-- Instructions -->
       <div class="bg-blue-50 p-4 rounded-lg mb-6 hidden">
         <div class="flex">
           <div class="flex-shrink-0">
@@ -90,7 +88,6 @@
         </div>
       </div>
 
-      <!-- Actions -->
       <div class="flex justify-center space-x-3">
         <Button
           @click="sendCredentialsByEmail"
@@ -106,7 +103,6 @@
       </div>
     </div>
 
-    <!-- Toast de confirmation de copie -->
     <div
       v-if="showCopyToast"
       class="fixed bottom-4 right-4 bg-green-600 text-white px-4 py-2 rounded-md shadow-lg z-50 transition-all duration-300"
@@ -152,23 +148,19 @@ const copyToClipboard = async (text: string) => {
 }
 
 const regeneratePassword = () => {
-  // Générer un nouveau mot de passe sécurisé
   const length = 12
   const charset = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*'
   let password = ''
 
-  // S'assurer qu'il y a au moins une majuscule, une minuscule, un chiffre et un caractère spécial
   password += 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'[Math.floor(Math.random() * 26)]
   password += 'abcdefghijklmnopqrstuvwxyz'[Math.floor(Math.random() * 26)]
   password += '0123456789'[Math.floor(Math.random() * 10)]
   password += '!@#$%^&*'[Math.floor(Math.random() * 8)]
 
-  // Compléter avec des caractères aléatoires
   for (let i = 4; i < length; i++) {
     password += charset[Math.floor(Math.random() * charset.length)]
   }
 
-  // Mélanger les caractères
   const newPassword = password.split('').sort(() => Math.random() - 0.5).join('')
 
   emit('passwordRegenerated', newPassword)
@@ -180,10 +172,8 @@ const sendCredentialsByEmail = async () => {
   isSendingEmail.value = true
 
   try {
-    // Ici vous pouvez implémenter l'envoi d'email
     // await clientStore.sendCredentialsByEmail(props.client.id, props.generatedPassword)
 
-    // Simulation d'un délai
     await new Promise(resolve => setTimeout(resolve, 1500))
 
     showCopyToast.value = true
@@ -197,10 +187,8 @@ const sendCredentialsByEmail = async () => {
   }
 }
 
-// Copier automatiquement les identifiants quand le modal s'ouvre
 watch(() => props.isOpen, (isOpen) => {
   if (isOpen && props.client?.email && props.generatedPassword) {
-    // Copier automatiquement l'email et le mot de passe
     copyToClipboard(`${props.client.email}\n${props.generatedPassword}`)
   }
 })

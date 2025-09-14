@@ -14,17 +14,14 @@ const showSidebar = computed(() => {
 
 <template>
   <div class="min-h-screen bg-gray-50">
-    <!-- Sidebar Layout -->
     <Sidebar v-if="showSidebar">
       <router-view />
     </Sidebar>
 
-    <!-- Auth Pages (Login/Register) -->
     <div v-else class="min-h-screen">
       <router-view />
     </div>
 
-    <!-- Loading Overlay -->
     <div
       v-if="authStore.isLoading"
       class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"

@@ -5,7 +5,6 @@
     size="sm"
     @close="handleClose"
   >
-    <!-- Body -->
     <div class="flex items-start space-x-3">
       <div class="flex-shrink-0">
         <AlertTriangle class="h-6 w-6 text-yellow-600" />
@@ -17,7 +16,6 @@
       </div>
     </div>
 
-    <!-- Footer with actions -->
     <template #footer>
       <div class="flex justify-end space-x-3">
         <Button
@@ -77,7 +75,6 @@ const handleConfirm = async () => {
     router.push('/login')
   } catch (error) {
     console.error('Erreur lors de la déconnexion:', error)
-    // Vous pourriez ajouter ici une notification d'erreur
   } finally {
     isLoading.value = false
   }

@@ -1,6 +1,5 @@
 import axios from 'axios'
 
-// Configuration de base d'Axios
 const api = axios.create({
   baseURL: import.meta.env.VITE_API_URL || 'http://localhost:3333',
   headers: {
@@ -8,7 +7,6 @@ const api = axios.create({
   },
 })
 
-// Intercepteur pour ajouter le token JWT
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem('auth_token')
   if (token) {
@@ -17,7 +15,6 @@ api.interceptors.request.use((config) => {
   return config
 })
 
-// Intercepteur pour gérer les erreurs d'authentification
 api.interceptors.response.use(
   (response) => response,
   (error) => {

@@ -1,6 +1,6 @@
 <template>
   <div class="p-6">
-    <!-- Header -->
+    
     <div class="mb-8">
       <div class="flex items-center justify-between">
         <div>
@@ -20,8 +20,6 @@
       </div>
     </div>
 
-    <!-- Étapes simplifiées -->
-    <div class="mb-8">
       <div class="flex items-center space-x-4 overflow-x-auto pb-2">
         <div
           v-for="(step, index) in steps"
@@ -61,9 +59,7 @@
       </div>
     </div>
 
-    <!-- Contenu des étapes -->
     <Card class="p-6">
-      <!-- Étape 1: Montant du prêt -->
       <div v-if="currentStep === 1">
         <h3 class="text-lg font-medium text-gray-900 mb-6 text-center">
           Quel est le montant de votre prêt ?
@@ -86,7 +82,6 @@
         </div>
       </div>
 
-      <!-- Étape 2: Durée du prêt -->
       <div v-if="currentStep === 2">
         <h3 class="text-lg font-medium text-gray-900 mb-6 text-center">
           Sur combien d'années souhaitez-vous emprunter ?
@@ -134,7 +129,7 @@
         </div>
       </div>
 
-      <!-- Étape 3: Taux d'intérêt -->
+        
       <div v-if="currentStep === 3">
         <h3 class="text-lg font-medium text-gray-900 mb-6 text-center">
           Quel est votre taux d'intérêt ?
@@ -182,7 +177,7 @@
         </div>
       </div>
 
-      <!-- Étape 4: Taux d'assurance -->
+        
       <div v-if="currentStep === 4">
         <h3 class="text-lg font-medium text-gray-900 mb-6 text-center">
           Quel est votre taux d'assurance emprunteur ?
@@ -230,7 +225,7 @@
         </div>
       </div>
 
-      <!-- Étape 5: Apport -->
+        
       <div v-if="currentStep === 5">
         <h3 class="text-lg font-medium text-gray-900 mb-6 text-center">
           Quel est le montant de votre apport ?
@@ -253,7 +248,7 @@
         </div>
       </div>
 
-      <!-- Étape 6: Valeur du bien -->
+        
       <div v-if="currentStep === 6">
         <h3 class="text-lg font-medium text-gray-900 mb-6 text-center">
           Quelle est la valeur du bien immobilier ?
@@ -277,14 +272,14 @@
         </div>
       </div>
 
-      <!-- Étape 7: Frais -->
+        
       <div v-if="currentStep === 7">
         <h3 class="text-lg font-medium text-gray-900 mb-6 text-center">
           Quels sont les frais associés ?
         </h3>
 
         <div class="max-w-md mx-auto space-y-6">
-          <!-- Frais de notaire -->
+            
           <div>
             <div class="text-center mb-4">
               <div class="text-2xl font-bold text-indigo-600">
@@ -326,7 +321,7 @@
             </div>
           </div>
 
-          <!-- Frais d'agence -->
+            
           <div>
             <div class="text-center mb-4">
               <div class="text-2xl font-bold text-green-600">
@@ -370,14 +365,14 @@
         </div>
       </div>
 
-      <!-- Étape 8: Options avancées -->
+        
       <div v-if="currentStep === 8">
         <h3 class="text-lg font-medium text-gray-900 mb-6 text-center">
           Options avancées (optionnel)
         </h3>
 
         <div class="max-w-md mx-auto space-y-6">
-          <!-- Travaux -->
+            
           <div>
             <PriceSlider
               v-model="parameters.travaux"
@@ -395,7 +390,7 @@
             />
           </div>
 
-          <!-- Revalorisation du bien -->
+            
           <div>
             <div class="text-center mb-4">
               <div class="text-2xl font-bold text-purple-600">
@@ -439,14 +434,12 @@
         </div>
       </div>
 
-      <!-- Étape 9: Prévisualisation et finalisation -->
       <div v-if="currentStep === 9">
         <h3 class="text-lg font-medium text-gray-900 mb-6 text-center">
           Prévisualisation de votre simulation
         </h3>
 
         <div class="max-w-2xl mx-auto space-y-6">
-          <!-- Nom de la simulation -->
           <div>
             <label class="block text-sm font-medium text-gray-700 mb-2">
               Nom de la simulation
@@ -462,7 +455,6 @@
             </p>
           </div>
 
-          <!-- Résumé des paramètres -->
           <div class="bg-gradient-to-r from-indigo-50 to-blue-50 p-6 rounded-lg">
             <h4 class="font-semibold text-gray-900 mb-4 text-center">Vos paramètres</h4>
             <div class="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm">
@@ -509,7 +501,6 @@
             </div>
           </div>
 
-          <!-- Résultats prévisionnels -->
           <div class="bg-gradient-to-r from-green-50 to-emerald-50 p-6 rounded-lg">
             <h4 class="font-semibold text-gray-900 mb-4 text-center">Estimation prévisionnelle</h4>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -524,7 +515,6 @@
             </div>
           </div>
 
-          <!-- Boutons de modification -->
           <div class="flex flex-wrap gap-2 justify-center">
             <button
               @click="currentStep = 1"
@@ -578,12 +568,10 @@
         </div>
       </div>
 
-      <!-- Erreur générale -->
       <div v-if="errorMessage" class="mt-4 rounded-md bg-red-50 p-4">
         <p class="text-sm text-red-700">{{ errorMessage }}</p>
       </div>
 
-      <!-- Actions -->
       <div class="mt-6 flex justify-between">
         <Button
           v-if="currentStep > 1"
@@ -671,7 +659,6 @@ const errors = ref({
   simulationName: '',
 })
 
-// Computed properties
 const canProceed = computed(() => {
   switch (currentStep.value) {
     case 1:
@@ -689,7 +676,7 @@ const canProceed = computed(() => {
     case 7:
       return parameters.value.notaryFees >= 0 && parameters.value.agencyFees >= 0
     case 8:
-      return true // Options avancées sont optionnelles
+      return true 
     case 9:
       return !!simulationName.value.trim()
     default:
@@ -701,13 +688,12 @@ const previewResults = computed(() => {
   return simulationStore.calculatePreview(parameters.value)
 })
 
-// Validation en temps réel
+
 watch(() => parameters.value, () => {
   validateCurrentStep()
 }, { deep: true })
 
 const validateCurrentStep = () => {
-  // Reset errors
   Object.keys(errors.value).forEach(key => {
     (errors.value as any)[key] = ''
   })
@@ -757,14 +743,12 @@ const createSimulation = async () => {
       parameters: parameters.value,
     }
 
-    // Les clients n'ont pas besoin de spécifier clientId, c'est géré automatiquement côté backend
     if (!authStore.isClient) {
-      simulationData.clientId = null // Pour les admins/agents, on peut spécifier un client plus tard
+      simulationData.clientId = null 
     }
 
     const newSimulation = await simulationStore.createSimulation(simulationData)
 
-    // Rediriger vers la page de détails de la simulation
     router.push(`/simulations/${newSimulation.id}`)
   } catch (error: any) {
     errorMessage.value = error.response?.data?.message || 'Erreur lors de la création de la simulation'

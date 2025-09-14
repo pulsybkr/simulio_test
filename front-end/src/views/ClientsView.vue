@@ -12,7 +12,6 @@
           </p>
         </div>
 
-        <!-- Bouton d'ajout (Admin & Agent seulement) -->
         <Button
           v-if="authStore.isAdmin || authStore.isAgent"
           @click="showCreateClientModal = true"
@@ -25,7 +24,6 @@
         </Button>
       </div>
 
-      <!-- Filtres et recherche -->
       <div class="mb-6">
         <div class="flex flex-col sm:flex-row gap-4">
           <div class="flex-1">
@@ -46,7 +44,6 @@
         </div>
       </div>
 
-      <!-- Liste des clients -->
       <div class="bg-white shadow overflow-hidden sm:rounded-md">
         <ul class="divide-y divide-gray-200">
           <li
@@ -77,7 +74,6 @@
               </div>
 
               <div class="flex items-center space-x-4">
-                <!-- Agent assigné -->
                 <div v-if="client.assignedAgent" class="text-right">
                   <div class="text-sm font-medium text-gray-900">
                     {{ client.assignedAgent.fullName }}
@@ -87,7 +83,6 @@
                   </div>
                 </div>
 
-                <!-- Actions -->
                 <div class="flex space-x-2">
                   <router-link
                     :to="`/clients/${client.id}`"
@@ -109,7 +104,6 @@
           </li>
         </ul>
 
-        <!-- État vide -->
         <div v-if="filteredClients.length === 0 && !isLoading" class="text-center py-12">
           <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z" />
@@ -126,20 +120,16 @@
         </div>
       </div>
 
-      <!-- Pagination (si nécessaire) -->
       <div v-if="filteredClients.length > 0" class="mt-6">
-        <!-- Pagination component could be added here -->
       </div>
     </div>
 
-    <!-- Modal de création de client -->
     <CreateClientModal
       :is-open="showCreateClientModal"
       @close="closeCreateClientModal"
       @client-created="handleClientCreated"
     />
 
-    <!-- Modal d'affichage des identifiants -->
     <ClientCredentialsModal
       :is-open="showCredentialsModal"
       :client="createdClient"
@@ -172,7 +162,6 @@ const generatedPassword = ref('')
 const filteredClients = computed(() => {
   let clients = clientStore.clients
 
-  // Filtre par recherche
   if (searchQuery.value) {
     const query = searchQuery.value.toLowerCase()
     clients = clients.filter(client =>
@@ -182,8 +171,7 @@ const filteredClients = computed(() => {
     )
   }
 
-  // Filtre par statut (si implémenté)
-  // if (statusFilter.value) {
+    // if (statusFilter.value) {
   //   clients = clients.filter(client => client.status === statusFilter.value)
   // }
 
@@ -200,20 +188,16 @@ onMounted(async () => {
   }
 })
 
-// Gestion du modal de création de client
 const closeCreateClientModal = () => {
   showCreateClientModal.value = false
 }
 
 const handleClientCreated = (newClient: any) => {
-  // Stocker les informations du client créé
   createdClient.value = newClient
   generatedPassword.value = newClient.generatedPassword || ''
 
-  // Fermer le modal de création
   showCreateClientModal.value = false
 
-  // Ouvrir le modal des credentials
   showCredentialsModal.value = true
 }
 
@@ -222,7 +206,6 @@ const closeCredentialsModal = () => {
   createdClient.value = null
   generatedPassword.value = ''
 
-  // Recharger la liste des clients après avoir fermé le modal
   clientStore.fetchClients()
 }
 

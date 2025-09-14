@@ -8,14 +8,12 @@ export const useAuthStore = defineStore('auth', () => {
   const isAuthenticated = ref(false)
   const isLoading = ref(false)
 
-  // Getters
   const fullName = computed(() => user.value?.fullName || '')
   const role = computed(() => user.value?.role || null)
   const isAdmin = computed(() => user.value?.role === 'admin')
   const isAgent = computed(() => user.value?.role === 'agent')
   const isClient = computed(() => user.value?.role === 'client')
 
-  // Actions
   async function login(email: string, password: string) {
     isLoading.value = true
     try {
@@ -90,19 +88,16 @@ export const useAuthStore = defineStore('auth', () => {
   }
 
   return {
-    // State
     user,
     isAuthenticated,
     isLoading,
 
-    // Getters
     fullName,
     role,
     isAdmin,
     isAgent,
     isClient,
 
-    // Actions
     login,
     register,
     logout,

@@ -79,7 +79,6 @@
         ></textarea>
       </div>
 
-      <!-- Informations sur la création automatique -->
       <div class="bg-blue-50 p-4 rounded-lg">
         <div class="flex">
           <div class="flex-shrink-0">
@@ -99,7 +98,6 @@
         </div>
       </div>
 
-      <!-- Erreur générale -->
       <div v-if="errorMessage" class="rounded-md bg-red-50 p-4">
         <p class="text-sm text-red-700">{{ errorMessage }}</p>
       </div>
@@ -170,24 +168,20 @@ const isFormValid = computed(() => {
          isValidEmail(form.value.email)
 })
 
-// Générer un mot de passe sécurisé
 const generatePassword = () => {
   const length = 12
   const charset = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*'
   let password = ''
 
-  // S'assurer qu'il y a au moins une majuscule, une minuscule, un chiffre et un caractère spécial
   password += 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'[Math.floor(Math.random() * 26)]
   password += 'abcdefghijklmnopqrstuvwxyz'[Math.floor(Math.random() * 26)]
   password += '0123456789'[Math.floor(Math.random() * 10)]
   password += '!@#$%^&*'[Math.floor(Math.random() * 8)]
 
-  // Compléter avec des caractères aléatoires
   for (let i = 4; i < length; i++) {
     password += charset[Math.floor(Math.random() * charset.length)]
   }
 
-  // Mélanger les caractères
   return password.split('').sort(() => Math.random() - 0.5).join('')
 }
 
@@ -214,13 +208,11 @@ const resetForm = () => {
 }
 
 const handleSubmit = async () => {
-  // Reset errors
   Object.keys(errors.value).forEach(key => {
     errors.value[key as keyof typeof errors.value] = ''
   })
   errorMessage.value = ''
 
-  // Validation
   if (!form.value.firstName.trim()) {
     errors.value.firstName = 'Le prénom est requis'
     return
@@ -244,7 +236,6 @@ const handleSubmit = async () => {
   isCreating.value = true
 
   try {
-    // Générer le mot de passe automatiquement
     const password = generatePassword()
 
     const clientData = {
@@ -254,7 +245,6 @@ const handleSubmit = async () => {
 
     const newClient = await clientStore.createClient(clientData)
 
-    // Passer le mot de passe généré avec le client
     const clientWithCredentials = {
       ...newClient,
       generatedPassword: password
@@ -279,7 +269,6 @@ const handleSubmit = async () => {
   }
 }
 
-// Générer un mot de passe initial quand le modal s'ouvre
 watch(() => props.isOpen, (isOpen) => {
   if (isOpen && !generatedPassword.value) {
     generatedPassword.value = generatePassword()

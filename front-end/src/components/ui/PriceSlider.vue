@@ -1,6 +1,5 @@
 <template>
   <div class="space-y-4">
-    <!-- Prix affiché -->
     <div class="text-center">
       <div class="text-3xl font-bold text-indigo-600">
         {{ formatCurrency(modelValue) }}
@@ -10,7 +9,6 @@
       </div>
     </div>
 
-    <!-- Slider -->
     <div class="relative">
       <input
         :value="modelValue"
@@ -22,14 +20,12 @@
         class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer slider"
       />
       
-      <!-- Marqueurs de valeurs -->
       <div class="flex justify-between text-xs text-gray-400 mt-2">
         <span>{{ formatCurrency(min) }}</span>
         <span>{{ formatCurrency(max) }}</span>
       </div>
     </div>
 
-    <!-- Boutons de raccourci -->
     <div v-if="shortcuts" class="flex flex-wrap gap-2 justify-center">
       <button
         v-for="shortcut in shortcuts"

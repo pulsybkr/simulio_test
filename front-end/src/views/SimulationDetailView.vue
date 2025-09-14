@@ -1,7 +1,6 @@
 <template>
   <div class="p-4">
     <div>
-      <!-- Header -->
       <div class="mb-6">
         <div class="flex flex-col space-y-4 sm:flex-row sm:items-center sm:justify-between sm:space-y-0">
           <div>
@@ -36,9 +35,7 @@
         </div>
       </div>
 
-      <!-- Statut et informations générales -->
       <div class="relative mb-6">
-        <!-- Navigation des slides (visible sur mobile uniquement) -->
         <div class="flex items-center justify-between mb-4 lg:hidden">
           <button
             @click="previousInfoSlide"
@@ -68,13 +65,11 @@
           </button>
         </div>
 
-        <!-- Contenu des slides -->
         <div class="overflow-hidden">
           <div
             class="flex transition-transform duration-300 ease-in-out lg:grid lg:grid-cols-3 lg:gap-4"
             :style="{ transform: `translateX(-${currentInfoSlide * 100}%)` }"
           >
-            <!-- Statut de la simulation -->
             <div class="w-full flex-shrink-0 lg:w-auto">
               <Card class="p-4">
                 <div class="flex items-center space-x-3">
@@ -122,7 +117,6 @@
               </Card>
             </div>
 
-            <!-- Client assigné -->
             <div class="w-full flex-shrink-0 lg:w-auto">
               <Card class="p-4">
                 <div class="flex items-center justify-between">
@@ -155,7 +149,6 @@
               </Card>
             </div>
 
-            <!-- Informations de création -->
             <div class="w-full flex-shrink-0 lg:w-auto">
               <Card class="p-4">
                 <div class="flex items-center space-x-3">
@@ -181,7 +174,6 @@
       </div>
 
       <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <!-- Paramètres -->
         <div class="lg:col-span-1">
           <Card class="p-4 bg-gradient-to-br from-slate-50 to-blue-50 border-0 shadow-lg">
             <div class="flex items-center space-x-3 mb-4">
@@ -195,7 +187,6 @@
               </h3>
             </div>
 
-            <!-- Navigation des slides (visible sur mobile uniquement) -->
             <div class="flex items-center justify-between mb-3 lg:hidden">
               <button
                 @click="previousParamSlide"
@@ -628,7 +619,6 @@
         <h3 class="text-lg font-medium text-gray-900">
           Modification des paramètres en cours...
         </h3>
-        <!-- Pas de bouton de fermeture pour éviter l'interruption -->
       </template>
 
       <div class="text-center py-6">
@@ -1046,7 +1036,6 @@
       </template>
     </Modal>
 
-    <!-- Modal d'assignation de client -->
     <Modal
       :is-open="showClientModal"
       title="Assigner un client"
@@ -1089,7 +1078,6 @@
           </Button>
         </div>
         
-        <!-- Message d'erreur -->
         <div v-if="assignmentError" class="rounded-md bg-red-50 p-3">
           <div class="flex">
             <div class="flex-shrink-0">
@@ -1123,14 +1111,12 @@
       </template>
     </Modal>
 
-    <!-- Modal de création de client -->
     <CreateClientModal
       :is-open="showCreateClientModal"
       @close="closeCreateClientModal"
       @client-created="handleClientCreated"
     />
 
-    <!-- Modal d'affichage des identifiants -->
     <ClientCredentialsModal
       :is-open="showCredentialsModal"
       :client="createdClient"
@@ -1164,18 +1150,16 @@ const authStore = useAuthStore()
 
 const showAmortizationTable = ref(false)
 const currentAmortizationPage = ref(1)
-const itemsPerPage = ref(12) // Changé à 12 comme demandé
+const itemsPerPage = ref(12)
 const pollingInterval = ref(null)
 
-// Slide states
 const currentInfoSlide = ref(0)
 const currentResultSlide = ref(0)
 const currentParamSlide = ref(0)
-const infoSlides = [0, 1, 2] // 3 slides pour les informations (statut, client, création)
-const resultSlides = [0, 1, 2] // 3 slides pour les résultats (coût, intérêts, salaire)
-const paramSlides = [0, 1, 2, 3, 4, 5, 6] // 7 slides pour les paramètres
+const infoSlides = [0, 1, 2]
+const resultSlides = [0, 1, 2]
+const paramSlides = [0, 1, 2, 3, 4, 5, 6]
 
-// Modal states
 const showEditModal = ref(false)
 const showClientModal = ref(false)
 const showCreateClientModal = ref(false)
@@ -1190,7 +1174,6 @@ const generatedPassword = ref('')
 const isCreatingVariant = ref(false)
 const newSimulationId = ref<number | null>(null)
 
-// Computed properties
 const simulation = computed(() => simulationStore.currentSimulation)
 const clients = computed(() => clientStore.clients)
 
@@ -1221,7 +1204,7 @@ const startPolling = () => {
     } else {
       stopPolling()
     }
-  }, 2000) // Vérifier toutes les 2 secondes
+  }, 2000)
 }
 
 const stopPolling = () => {
@@ -1231,7 +1214,6 @@ const stopPolling = () => {
   }
 }
 
-// Polling spécifique pour une nouvelle simulation créée
 const startPollingForNewSimulation = async (simulationId: number) => {
   return new Promise<void>((resolve) => {
     const pollInterval = setInterval(async () => {
@@ -1239,22 +1221,18 @@ const startPollingForNewSimulation = async (simulationId: number) => {
         const updatedSimulation = await simulationStore.fetchSimulation(simulationId)
 
         if (updatedSimulation.status === 'completed') {
-          // Simulation terminée, rediriger
           clearInterval(pollInterval)
           isCreatingVariant.value = false
           newSimulationId.value = null
           await router.push(`/simulations/${simulationId}`)
           resolve()
         } else if (updatedSimulation.status === 'failed') {
-          // Simulation échouée
           clearInterval(pollInterval)
           isCreatingVariant.value = false
           newSimulationId.value = null
-          // Afficher un message d'erreur et rester sur la page actuelle
           console.error('La simulation a échoué')
           resolve()
         }
-        // Si toujours en cours, continuer le polling
       } catch (error) {
         console.error('Erreur lors du polling de la nouvelle simulation:', error)
         clearInterval(pollInterval)
@@ -1262,7 +1240,7 @@ const startPollingForNewSimulation = async (simulationId: number) => {
         newSimulationId.value = null
         resolve()
       }
-    }, 2000) // Vérifier toutes les 2 secondes
+    }, 2000)
   })
 }
 
@@ -1271,10 +1249,8 @@ onMounted(async () => {
   try {
     await simulationStore.fetchSimulation(parseInt(simulationId))
     
-    // Charger les clients pour le modal d'assignation
-    await clientStore.fetchClients()
+      await clientStore.fetchClients()
     
-    // Démarrer le polling si la simulation est en cours
     if (simulation.value?.status === 'processing' || simulation.value?.status === 'pending') {
       startPolling()
     }
@@ -1285,12 +1261,10 @@ onMounted(async () => {
 
 onUnmounted(() => {
   stopPolling()
-  // Nettoyer l'état de création de variante
   isCreatingVariant.value = false
   newSimulationId.value = null
 })
 
-// Modal functions
 const openEditModal = () => {
   if (simulation.value?.parameters) {
     editParameters.value = { ...simulation.value.parameters }
@@ -1309,7 +1283,6 @@ const saveParameters = async () => {
   isUpdating.value = true
   try {
     if (authStore.role === 'client') {
-      // Pour les clients : créer une nouvelle simulation avec indicateur de chargement
       isCreatingVariant.value = true
 
       const newSimulationName = `${simulation.value.name} - Variante`
@@ -1322,20 +1295,16 @@ const saveParameters = async () => {
       const newSimulation = await simulationStore.createSimulation(newSimulationData)
       newSimulationId.value = newSimulation.id
 
-      // Fermer la modale et afficher l'état de calcul
       closeEditModal()
 
-      // Démarrer le polling pour suivre l'état de la nouvelle simulation
       await startPollingForNewSimulation(newSimulation.id)
 
     } else {
-      // Pour les admins et agents : modification de la simulation existante
     await simulationStore.updateSimulation(
       simulation.value.id,
       { parameters: editParameters.value }
     )
     closeEditModal()
-    // Redémarrer le polling si nécessaire
     if (simulation.value?.status === 'processing' || simulation.value?.status === 'pending') {
       startPolling()
       }
@@ -1379,7 +1348,6 @@ const assignClient = async () => {
     closeClientModal()
   } catch (error) {
     console.error('Erreur lors de l\'assignation:', error)
-    // Afficher l'erreur à l'utilisateur
     assignmentError.value = error.response?.data?.message || error.message || 'Erreur lors de l\'assignation du client'
   } finally {
     isAssigningClient.value = false
@@ -1396,14 +1364,11 @@ const closeCreateClientModal = () => {
 }
 
 const handleClientCreated = (newClient: any) => {
-  // Stocker les informations du client créé
   createdClient.value = newClient
   generatedPassword.value = newClient.generatedPassword || ''
 
-  // Fermer le modal de création
   showCreateClientModal.value = false
 
-  // Ouvrir le modal des credentials
   showCredentialsModal.value = true
 }
 
@@ -1412,8 +1377,6 @@ const closeCredentialsModal = () => {
   createdClient.value = null
   generatedPassword.value = ''
 
-  // Après avoir fermé le modal des credentials, rouvrir le modal d'assignation
-  // avec le nouveau client sélectionné
   if (createdClient.value) {
     selectedClientId.value = createdClient.value.id.toString()
     showClientModal.value = true
@@ -1424,7 +1387,6 @@ const handlePasswordRegenerated = (newPassword: string) => {
   generatedPassword.value = newPassword
 }
 
-// Utility functions
 const formatCurrency = (amount: number) => {
   return new Intl.NumberFormat('fr-FR', {
     style: 'currency',
@@ -1447,7 +1409,6 @@ const getStatusLabel = (status: string) => {
 }
 
 const exportResults = () => {
-  // TODO: Implémenter l'export des résultats
   console.log('Export des résultats')
 }
 
@@ -1465,7 +1426,6 @@ const retrySimulation = async () => {
   }
 }
 
-// Slide navigation methods
 const nextInfoSlide = () => {
   if (currentInfoSlide.value < infoSlides.length - 1) {
     currentInfoSlide.value++
