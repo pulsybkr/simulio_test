@@ -70,60 +70,43 @@
 - **Validation** : Pydantic
 - **Documentation** : Swagger UI automatique
 
-### 🐳 Infrastructure
-- **Conteneurisation** : Docker + Docker Compose
-- **Services** :
-  - MySQL (base de données)
-  - AdonisJS Backend (API métier)
-  - FastAPI (calculs financiers)
-  - Vue.js Frontend
-  - phpMyAdmin (administration DB)
-
 ## 🚀 Installation et Lancement
 
 ### 📋 Prérequis
-
-#### Avec Docker (Recommandé)
-- Docker Desktop
-- Docker Compose
-- Git
-
-#### Sans Docker
 - Node.js 20+ et npm
 - Python 3.9+
 - MySQL 8.0
 - Git
 
-### 🐳 Lancement avec Docker
+### 💻 Installation Manuelle
 
-1. **Cloner le projet**
+#### 🚀 Installation Rapide
+
+**Windows :**
+```bash
+git clone <votre-repo>
+cd simulio
+setup.bat
+```
+
+**Linux/Mac :**
+```bash
+git clone <votre-repo>
+cd simulio
+chmod +x setup.sh
+./setup.sh
+```
+
+#### 📋 Installation Détaillée
+
+##### 1. Cloner le projet
 ```bash
 git clone <votre-repo>
 cd simulio
 ```
 
-2. **Démarrer l'application**
-
-**Windows :**
-```cmd
-start.bat
-```
-
-**Linux/Mac :**
-```bash
-chmod +x start.sh
-./start.sh
-```
-
-3. **Accéder à l'application**
-- 📱 **Application** : http://localhost:5173
-- 🔧 **API Backend** : http://localhost:3333
-- 🧮 **API Simulation** : http://localhost:8000
-- 🗄️ **phpMyAdmin** : http://localhost:8081
-
-### 💻 Lancement sans Docker
-
-#### 1. Base de données MySQL
+##### 2. Base de données MySQL
+Installez MySQL 8.0 et créez la base de données :
 ```sql
 CREATE DATABASE simulio;
 CREATE USER 'simulio_user'@'localhost' IDENTIFIED BY 'simulio_password';
@@ -131,34 +114,78 @@ GRANT ALL PRIVILEGES ON simulio.* TO 'simulio_user'@'localhost';
 FLUSH PRIVILEGES;
 ```
 
-#### 2. API de Simulation (Python)
+##### 3. API de Simulation (Python) - Terminal 1
 ```bash
 cd simulation
 python -m venv .venv
-source .venv/bin/activate  # Linux/Mac
-# ou
-.venv\Scripts\activate     # Windows
+
+# Linux/Mac
+source .venv/bin/activate
+# Windows
+.venv\Scripts\activate
+
 pip install -r requirements.txt
 python main.py
 ```
+✅ **API Simulation disponible sur** : http://localhost:8000
 
-#### 3. Backend (AdonisJS)
+##### 4. Backend (AdonisJS) - Terminal 2
 ```bash
 cd back-end
 npm install
 cp env.example .env
-# Configurer les variables d'environnement dans .env
-npm run dev
 ```
 
-#### 4. Frontend (Vue.js)
+Configurez le fichier `.env` avec vos paramètres MySQL :
+```env
+DB_CONNECTION=mysql
+DB_HOST=127.0.0.1
+DB_PORT=3306
+DB_USER=simulio_user
+DB_PASSWORD=simulio_password
+DB_DATABASE=simulio
+SIMULATION_API_URL=http://localhost:8000
+```
+
+Puis lancez le serveur :
+```bash
+npm run dev
+```
+✅ **API Backend disponible sur** : http://localhost:3333
+
+##### 5. Frontend (Vue.js) - Terminal 3
 ```bash
 cd front-end
 npm install
 cp env.example .env
-# Configurer VITE_API_URL=http://localhost:3333
+```
+
+Configurez le fichier `.env` :
+```env
+VITE_API_URL=http://localhost:3333
+```
+
+Puis lancez le serveur de développement :
+```bash
 npm run dev
 ```
+✅ **Application disponible sur** : http://localhost:5173
+
+#### 🎯 Démarrage Rapide du Développement
+
+Une fois l'installation terminée, utilisez ces scripts pour lancer tous les services :
+
+**Windows :**
+```bash
+start-dev.bat
+```
+
+**Linux/Mac :**
+```bash
+./start-dev.sh
+```
+
+Ces scripts ouvriront automatiquement 3 terminaux pour chaque service.
 
 ### 🔑 Comptes de Test
 

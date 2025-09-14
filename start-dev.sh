@@ -1,82 +1,58 @@
 #!/bin/bash
 
-echo "🚀 Démarrage de Simulio en mode développement..."
+echo "========================================"
+echo "   SIMULIO - Démarrage Développement"
+echo "========================================"
+echo
+echo "Ce script va ouvrir 3 terminaux pour:"
+echo "1. API Simulation (Python) - Port 8000"
+echo "2. Backend (AdonisJS) - Port 3333"
+echo "3. Frontend (Vue.js) - Port 5173"
+echo
+echo "Assurez-vous que MySQL est démarré !"
+echo
+read -p "Appuyez sur Entrée pour continuer..."
 
-check_port() {
-    local port=$1
-    if lsof -Pi :$port -sTCP:LISTEN -t >/dev/null ; then
-        echo "❌ Port $port déjà utilisé. Veuillez le libérer ou changer de port."
-        return 1
+# Fonction pour détecter le terminal disponible
+open_terminal() {
+    local title="$1"
+    local command="$2"
+    
+    if command -v gnome-terminal &> /dev/null; then
+        gnome-terminal --title="$title" -- bash -c "$command; exec bash"
+    elif command -v xterm &> /dev/null; then
+        xterm -title "$title" -e bash -c "$command; exec bash" &
+    elif command -v konsole &> /dev/null; then
+        konsole --title "$title" -e bash -c "$command; exec bash" &
+    elif [[ "$OSTYPE" == "darwin"* ]]; then
+        # macOS
+        osascript -e "tell app \"Terminal\" to do script \"cd $(pwd) && $command\""
+    else
+        echo "Terminal non détecté. Lancez manuellement:"
+        echo "$command"
     fi
-    return 0
 }
 
-check_port 3306 || exit 1  # MySQL
-check_port 3333 || exit 1  # Backend
-check_port 8000 || exit 1  # Simulation API
-check_port 8080 || exit 1  # Frontend
+# Terminal 1 - API Simulation
+echo "Ouverture du terminal API Simulation..."
+open_terminal "Simulio - API Simulation" "cd simulation && source .venv/bin/activate && python main.py"
 
-echo "🐳 Démarrage de MySQL..."
-docker run --name simulio_mysql_dev \
-    -e MYSQL_ROOT_PASSWORD=rootpassword \
-    -e MYSQL_DATABASE=simulio \
-    -e MYSQL_USER=simulio_user \
-    -e MYSQL_PASSWORD=simulio_password \
-    -p 3306:3306 \
-    -d mysql:8.0
+sleep 2
 
-echo "⏳ Attente de MySQL..."
-sleep 10
+# Terminal 2 - Backend
+echo "Ouverture du terminal Backend..."
+open_terminal "Simulio - Backend API" "cd back-end && npm run dev"
 
-echo "🧮 Démarrage de l'API Simulation..."
-cd simulation
-python main.py &
-SIMULATION_PID=$!
-cd ..
+sleep 2
 
-echo "🔧 Démarrage du Backend..."
-cd back-end
-npm run dev &
-BACKEND_PID=$!
-cd ..
+# Terminal 3 - Frontend
+echo "Ouverture du terminal Frontend..."
+open_terminal "Simulio - Frontend" "cd front-end && npm run dev"
 
-sleep 5
-
-echo "🎨 Démarrage du Frontend..."
-cd front-end
-npm run dev &
-FRONTEND_PID=$!
-cd ..
-
-echo ""
-echo "🎉 Simulio est opérationnel en mode développement !"
-echo ""
-echo "📱 Frontend : http://localhost:8080"
-echo "🔧 Backend : http://localhost:3333"
-echo "🧮 Simulation API : http://localhost:8000"
-echo ""
-echo "💡 Comptes de test :"
-echo "   Admin: admin@simulio.com / Admin123!"
-echo "   Agent: agent@simulio.com / Agent123!"
-echo "   Client: client@simulio.com / Client123!"
-echo ""
-echo "🛑 Pour arrêter : Ctrl+C ou ./stop-dev.sh"
-
-cleanup() {
-    echo ""
-    echo "🧹 Nettoyage des processus..."
-    kill $FRONTEND_PID 2>/dev/null
-    kill $BACKEND_PID 2>/dev/null
-    kill $SIMULATION_PID 2>/dev/null
-
-    echo "🐳 Arrêt de MySQL..."
-    docker stop simulio_mysql_dev 2>/dev/null
-    docker rm simulio_mysql_dev 2>/dev/null
-
-    echo "✅ Nettoyage terminé."
-    exit 0
-}
-
-trap cleanup SIGINT SIGTERM
-
-wait
+echo
+echo "========================================"
+echo "Terminaux ouverts ! Accès:"
+echo "- Frontend: http://localhost:5173"
+echo "- Backend: http://localhost:3333"
+echo "- Simulation: http://localhost:8000"
+echo "========================================"
