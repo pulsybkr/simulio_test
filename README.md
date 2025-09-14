@@ -84,15 +84,15 @@
 
 **Windows :**
 ```bash
-git clone [<votre-repo>](https://github.com/pulsybkr/simulio_test.git)
+git clone https://github.com/pulsybkr/simulio_test.git
 cd simulio_test
 setup.bat
 ```
 
 **Linux/Mac :**
 ```bash
-git clone <votre-repo>
-cd simulio
+git clone https://github.com/pulsybkr/simulio_test.git
+cd simulio_test
 chmod +x setup.sh
 ./setup.sh
 ```
