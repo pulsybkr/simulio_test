@@ -1,358 +1,301 @@
-# 🚀 Simulio - Simulateur Financier
+# 🏡 Simulio - Simulateur de Prêt Immobilier
 
-Une application web moderne de simulation financière immobilière développée avec une architecture microservices.
+## 📋 Description du Projet
 
-## 📋 Table des matières
+**Simulio** est une application web complète de simulation de prêts immobiliers développée dans le cadre d'un test technique. Elle permet aux utilisateurs authentifiés de créer des simulations financières détaillées pour des projets immobiliers.
 
-- [✨ Fonctionnalités](#-fonctionnalités)
-- [🏗️ Architecture](#️-architecture)
-- [🛠️ Technologies](#️-technologies)
-- [🚀 Installation & Lancement](#-installation--lancement)
-- [📖 Utilisation](#-utilisation)
-- [🔧 Configuration](#-configuration)
-- [🤝 Contribution](#-contribution)
+### ✨ Fonctionnalités Principales
 
-## ✨ Fonctionnalités
+#### 🔐 Authentification
+- **Inscription** et **connexion** sécurisées
+- Système d'authentification JWT
+- Gestion des sessions utilisateur
 
-### 👤 Gestion des Utilisateurs
-- **Authentification JWT** sécurisée
-- **3 rôles utilisateur** : Admin, Agent, Client
-- **Inscription/Connexion** avec validation
-- **Gestion des permissions** par rôle
+#### 👥 Gestion des Clients
+- **Création de clients** avec informations complètes
+- **Attribution de simulations** à des clients spécifiques
+- **Visualisation** de la liste des clients et de leurs simulations
 
-### 🏠 Gestion des Clients (Admin & Agent uniquement)
-- **CRUD complet** des clients
-- **Assignation d'agents** aux clients
-- **Filtrage par agent** pour les administrateurs
+#### 🧮 Simulations Financières
+- **Assistant de création** de simulation en 9 étapes :
+  1. Montant du prêt
+  2. Durée du prêt
+  3. Taux d'intérêt
+  4. Taux d'assurance
+  5. Apport personnel
+  6. Valeur du bien
+  7. Frais (notaire, agence)
+  8. Options avancées (travaux, revalorisation)
+  9. Validation et enregistrement
 
-### 📊 Simulations Financières
-- **Calculs avancés** de prêt immobilier
-- **Tableau d'amortissement** détaillé
-- **Évolution de la valeur** du bien immobilier
-- **Calcul du salaire minimum** requis
-- **Statut temps réel** des simulations
+- **Calculs automatiques** :
+  - Mensualités de remboursement
+  - Tableau d'amortissement complet
+  - Coût total du crédit
+  - Intérêts totaux
+  - Évolution de la valeur du bien
+  - Exigence de salaire minimum
 
-### 🎨 Interface Utilisateur
-- **Design moderne** inspiré d'Apple et Airbnb
-- **Responsive** (desktop, tablette, mobile)
-- **Navigation intuitive** avec rôles adaptés
-- **Composants réutilisables** avec Shadcn UI
+#### 📊 Tableaux de Bord
+- **Dashboard principal** avec vue d'ensemble
+- **Détail des simulations** avec graphiques
+- **Historique complet** des calculs
 
-## 🏗️ Architecture
+#### 📱 Interface Utilisateur
+- **Design moderne** avec Tailwind CSS et Radix UI
+- **Interface responsive** (desktop, tablette, mobile)
+- **Navigation intuitive** avec sidebar
+- **Composants réutilisables** (modales, boutons, inputs)
 
-```
-┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
-│   Frontend      │    │   API Gateway   │    │   Services      │
-│   Vue.js        │◄──►│   (Nginx)       │◄──►│   - Auth        │
-│   + TypeScript  │    │                 │    │   - Simulation  │
-└─────────────────┘    └─────────────────┘    │   - Clients     │
-                                              └─────────────────┘
-                                                     │
-                                                     ▼
-                                              ┌─────────────────┐
-                                              │   Database      │
-                                              │   MySQL         │
-                                              └─────────────────┘
-```
+## 🏗️ Architecture Technique
 
-### Microservices
-1. **Backend AdonisJS** (Port 3333)
-   - Authentification et autorisation
-   - Gestion des utilisateurs et clients
-   - Orchestration des simulations
+### 🎨 Frontend
+- **Framework** : Vue.js 3 avec TypeScript
+- **Styling** : Tailwind CSS + Radix Vue
+- **État global** : Pinia
+- **Routage** : Vue Router
+- **HTTP** : Axios
+- **Build** : Vite
 
-2. **API Simulation Python** (Port 8000)
-   - Calculs financiers complexes
-   - Intégration de la fonction de simulation existante
-   - API REST avec validation Pydantic
+### 🔧 Backend
+- **Framework** : AdonisJS 6 (Node.js + TypeScript)
+- **Base de données** : MySQL 8.0
+- **ORM** : Lucid (AdonisJS)
+- **Authentification** : JWT avec AdonisJS Auth
+- **API** : RESTful
 
-3. **Frontend Vue.js** (Port 8080)
-   - Interface utilisateur moderne
-   - Gestion d'état avec Pinia
-   - Routing avec Vue Router
+### 🧮 API de Simulation
+- **Framework** : FastAPI (Python)
+- **Calculs** : NumPy, Pandas, numpy-financial
+- **Validation** : Pydantic
+- **Documentation** : Swagger UI automatique
 
-4. **Base de données MySQL** (Port 3306)
-   - Stockage persistant des données
-   - Migrations automatisées
+### 🐳 Infrastructure
+- **Conteneurisation** : Docker + Docker Compose
+- **Services** :
+  - MySQL (base de données)
+  - AdonisJS Backend (API métier)
+  - FastAPI (calculs financiers)
+  - Vue.js Frontend
+  - phpMyAdmin (administration DB)
 
-## 🛠️ Technologies
+## 🚀 Installation et Lancement
 
-### Backend (AdonisJS + TypeScript)
-- **AdonisJS 6** - Framework web Node.js
-- **TypeScript** - Typage statique
-- **Lucid ORM** - ORM pour MySQL
-- **Vine** - Validation des données
-- **JWT** - Authentification sécurisée
-- **Logging avancé** - Suivi complet des requêtes HTTP
+### 📋 Prérequis
 
-### API Simulation (Python)
-- **FastAPI** - Framework API moderne
-- **Pydantic** - Validation et sérialisation
-- **Pandas & Numpy** - Calculs financiers
-- **Uvicorn** - Serveur ASGI
+#### Avec Docker (Recommandé)
+- Docker Desktop
+- Docker Compose
+- Git
 
-### Frontend (Vue.js)
-- **Vue 3** - Framework JavaScript progressif
-- **TypeScript** - Typage statique
-- **Pinia** - Gestion d'état
-- **Vue Router** - Routing
-- **Tailwind CSS** - Framework CSS utilitaire
-- **Shadcn Vue** - Composants UI accessibles
+#### Sans Docker
+- Node.js 20+ et npm
+- Python 3.9+
+- MySQL 8.0
+- Git
 
-### Infrastructure
-- **Docker & Docker Compose** - Conteneurisation
-- **MySQL 8.0** - Base de données
-- **Nginx** - Reverse proxy et serveur statique
+### 🐳 Lancement avec Docker
 
-## 🚀 Installation & Lancement
-
-### Prérequis
-- **Docker & Docker Compose** pour le mode production
-- **Node.js 20+** et **Python 3.11+** pour le développement local
-- **Git** pour cloner le repository
-- **4GB RAM** minimum recommandé
-
-### 🐳 Mode Production (Docker)
-
+1. **Cloner le projet**
 ```bash
-# Cloner le repository
-git clone <repository-url>
+git clone <votre-repo>
 cd simulio
+```
 
-# Lancer tous les services
-docker-compose up -d
+2. **Démarrer l'application**
 
-# Ou utiliser le script Windows
+**Windows :**
+```cmd
 start.bat
-
-# Attendre que tous les services soient prêts (2-3 minutes)
 ```
 
-### 💻 Mode Développement Local
-
-Pour développer avec rechargement automatique :
-
+**Linux/Mac :**
 ```bash
-# Installation des dépendances
-cd back-end && npm install && cd ..
-cd front-end && npm install && cd ..
-cd simulation && pip install -r requirements.txt && cd ..
-
-# Démarrage des services (Linux/Mac)
-./start-dev.sh
-
-# Ou manuellement sur Windows :
-# Terminal 1: MySQL Docker
-docker run --name simulio_mysql_dev -e MYSQL_ROOT_PASSWORD=rootpassword -e MYSQL_DATABASE=simulio -e MYSQL_USER=simulio_user -e MYSQL_PASSWORD=simulio_password -p 3306:3306 -d mysql:8.0
-
-# Terminal 2: API Simulation
-cd simulation && python main.py
-
-# Terminal 3: Backend
-cd back-end && npm run dev
-
-# Terminal 4: Frontend
-cd front-end && npm run dev
+chmod +x start.sh
+./start.sh
 ```
 
-### 🛑 Arrêt du Mode Développement
+3. **Accéder à l'application**
+- 📱 **Application** : http://localhost:5173
+- 🔧 **API Backend** : http://localhost:3333
+- 🧮 **API Simulation** : http://localhost:8000
+- 🗄️ **phpMyAdmin** : http://localhost:8081
 
-```bash
-# Linux/Mac
-./stop-dev.sh
+### 💻 Lancement sans Docker
 
-# Windows - arrêter manuellement
-# Ctrl+C dans chaque terminal, puis :
-docker stop simulio_mysql_dev && docker rm simulio_mysql_dev
+#### 1. Base de données MySQL
+```sql
+CREATE DATABASE simulio;
+CREATE USER 'simulio_user'@'localhost' IDENTIFIED BY 'simulio_password';
+GRANT ALL PRIVILEGES ON simulio.* TO 'simulio_user'@'localhost';
+FLUSH PRIVILEGES;
 ```
 
-### Accès aux Services
-
-| Service | URL | Description |
-|---------|-----|-------------|
-| **Application** | http://localhost:8080 | Interface utilisateur Vue.js |
-| **API Backend** | http://localhost:3333 | API REST AdonisJS |
-| **API Simulation** | http://localhost:8000 | API calculs Python |
-| **phpMyAdmin** | http://localhost:8081 | Gestion BD (optionnel) |
-
-### Comptes de Test
-Après le premier lancement, créez un compte administrateur ou utilisez :
-- **Email** : admin@simulio.com
-- **Mot de passe** : Admin123!
-
-## 📊 Logging et Monitoring
-
-### Logs des Requêtes HTTP
-Le backend enregistre automatiquement toutes les requêtes HTTP avec :
-- ✅ **Méthode, URL, statut HTTP**
-- ✅ **Temps de réponse, taille des données**
-- ✅ **IP client, User-Agent**
-- ✅ **Utilisateur connecté**
-- ✅ **Erreurs et stack traces**
-
-### Consultation des Logs
-
-#### En développement (console)
-```bash
-cd back-end && npm run dev
-# Les logs apparaissent directement dans le terminal
-```
-
-#### Test des logs
-```bash
-cd back-end && npm run test:logs
-```
-
-#### Logs de production (fichiers)
-```
-logs/
-├── app.log          # Logs généraux
-└── http.log         # Logs HTTP uniquement
-```
-
-### Configuration du Logging
-Voir le fichier `back-end/LOGGING.md` pour une documentation complète du système de logging.
-
-## 📖 Utilisation
-
-### 🔐 Authentification
-1. **Inscription** : Créez un compte avec email et mot de passe
-2. **Connexion** : Utilisez vos identifiants
-3. **Rôles** : Choisissez entre Admin, Agent ou Client
-
-### 👥 Gestion des Clients (Admin/Agent)
-1. Accédez à la section "Clients"
-2. **Créer** un nouveau client avec ses informations
-3. **Assigner** un agent au client (Admin uniquement)
-4. **Modifier/Supprimer** les clients selon vos permissions
-
-### 📈 Simulations
-1. Cliquez sur "Nouvelle Simulation"
-2. Remplissez les paramètres :
-   - Montant du prêt
-   - Durée (1-30 ans)
-   - Taux d'intérêt
-   - Taux d'assurance
-   - Apport initial
-   - Frais (notaire, agence)
-   - Valeur du bien
-3. Lancez le calcul
-4. Consultez les résultats détaillés
-
-### 📊 Dashboard
-- **Vue d'ensemble** avec statistiques
-- **Simulations récentes** par statut
-- **Actions rapides** selon le rôle
-- **Navigation adaptée** aux permissions
-
-## 🔧 Configuration
-
-### Variables d'Environnement
-
-#### Backend (.env)
-```env
-NODE_ENV=production
-PORT=3333
-DB_HOST=mysql
-DB_USER=simulio_user
-DB_PASSWORD=simulio_password
-DB_DATABASE=simulio
-SIMULATION_API_URL=http://simulation:8000
-JWT_SECRET=your-secret-key
-```
-
-#### Frontend (docker-compose.yml)
-```yaml
-environment:
-  VITE_API_URL: http://localhost:3333
-```
-
-### Base de Données
-
-Les migrations sont automatiquement exécutées au premier lancement. La structure inclut :
-
-- **users** : Utilisateurs avec rôles
-- **clients** : Clients avec agent assigné
-- **simulations** : Simulations avec paramètres et résultats
-- **access_tokens** : Tokens JWT
-
-## 🤝 Contribution
-
-### Structure du Projet
-```
-simulio/
-├── back-end/          # API AdonisJS
-├── front-end/         # Application Vue.js
-├── simulation/        # API Python
-├── docker-compose.yml # Orchestration
-└── README.md         # Documentation
-```
-
-### Développement Local
-
-#### Backend
-```bash
-cd back-end
-npm install
-npm run dev
-```
-
-#### Simulation API
+#### 2. API de Simulation (Python)
 ```bash
 cd simulation
+python -m venv .venv
+source .venv/bin/activate  # Linux/Mac
+# ou
+.venv\Scripts\activate     # Windows
 pip install -r requirements.txt
 python main.py
 ```
 
-#### Frontend
+#### 3. Backend (AdonisJS)
 ```bash
-cd front-end
+cd back-end
 npm install
+cp env.example .env
+# Configurer les variables d'environnement dans .env
 npm run dev
 ```
 
-### Tests
+#### 4. Frontend (Vue.js)
 ```bash
-# Backend
-cd back-end && npm test
-
-# API Simulation
-cd simulation && python -m pytest
+cd front-end
+npm install
+cp env.example .env
+# Configurer VITE_API_URL=http://localhost:3333
+npm run dev
 ```
 
-## 📋 Roadmap
+### 🔑 Comptes de Test
 
-### ✅ Implémenté
-- [x] Architecture microservices
-- [x] Authentification JWT
-- [x] Gestion des rôles utilisateur
-- [x] CRUD Clients
-- [x] API Simulation Python
-- [x] Interface Vue.js moderne
-- [x] Docker & orchestration
-- [x] Design responsive
+**Administrateur :**
+- Email: `admin@simulio.com`
+- Mot de passe: `Admin123!`
 
-### 🚧 En cours
-- [ ] Tests unitaires et d'intégration
-- [ ] Documentation API (Swagger)
-- [ ] Export PDF des simulations
-- [ ] Notifications par email
-- [ ] Mode hors ligne
+## 📁 Structure du Projet
 
-### 📅 Planifié
-- [ ] Multi-tenancy
-- [ ] API GraphQL
-- [ ] Analytics avancés
-- [ ] Intégration bancaire
-- [ ] Application mobile
+```
+simulio/
+├── 📁 back-end/                 # API AdonisJS
+│   ├── 📁 app/
+│   │   ├── 📁 controllers/      # Contrôleurs API
+│   │   ├── 📁 models/          # Modèles de données
+│   │   ├── 📁 middleware/      # Middlewares
+│   │   └── 📁 validators/      # Validation des données
+│   ├── 📁 database/
+│   │   └── 📁 migrations/      # Migrations DB
+│   └── 📁 config/              # Configuration
+├── 📁 front-end/               # Application Vue.js
+│   ├── 📁 src/
+│   │   ├── 📁 components/      # Composants réutilisables
+│   │   ├── 📁 views/          # Pages de l'application
+│   │   ├── 📁 stores/         # Gestion d'état Pinia
+│   │   ├── 📁 services/       # Services API
+│   │   └── 📁 types/          # Types TypeScript
+├── 📁 simulation/              # API Python FastAPI
+│   ├── main.py                # Logique de calcul
+│   └── requirements.txt       # Dépendances Python
+├── docker-compose.yml         # Configuration Docker
+├── start.bat                  # Script Windows
+├── start.sh                   # Script Linux/Mac
+└── README.md                  # Cette documentation
+```
 
-## 📞 Support
+## 🔄 API Endpoints
 
-Pour toute question ou problème :
-1. Vérifiez les logs Docker : `docker-compose logs`
-2. Consultez la documentation API : http://localhost:8000/docs
-3. Ouvrez une issue sur le repository
+### 🔐 Authentification
+- `POST /auth/register` - Inscription
+- `POST /auth/login` - Connexion
+- `POST /auth/logout` - Déconnexion
+- `GET /auth/me` - Profil utilisateur
+
+### 👥 Clients
+- `GET /clients` - Liste des clients
+- `POST /clients` - Créer un client
+- `GET /clients/:id` - Détail d'un client
+- `PUT /clients/:id` - Modifier un client
+- `DELETE /clients/:id` - Supprimer un client
+
+### 🧮 Simulations
+- `GET /simulations` - Liste des simulations
+- `POST /simulations` - Créer une simulation
+- `GET /simulations/:id` - Détail d'une simulation
+- `PUT /simulations/:id` - Modifier une simulation
+- `DELETE /simulations/:id` - Supprimer une simulation
+
+### 📊 API de Calcul (Python)
+- `POST /simulate` - Calculer une simulation
+- `GET /health` - Status de l'API
+- `GET /test` - Test avec paramètres par défaut
+
+## 🛠️ Technologies Utilisées
+
+### Frontend
+- **Vue.js 3** - Framework JavaScript progressif
+- **TypeScript** - Typage statique
+- **Tailwind CSS** - Framework CSS utilitaire
+- **Radix Vue** - Composants UI accessibles
+- **Pinia** - Gestion d'état moderne
+- **Vue Router** - Routage SPA
+- **Axios** - Client HTTP
+- **Vite** - Build tool rapide
+
+### Backend
+- **AdonisJS 6** - Framework Node.js
+- **TypeScript** - Développement typé
+- **MySQL** - Base de données relationnelle
+- **Lucid ORM** - Mapping objet-relationnel
+- **JWT** - Authentification stateless
+
+### Simulation
+- **FastAPI** - Framework Python moderne
+- **Pandas** - Manipulation de données
+- **NumPy** - Calculs numériques
+- **numpy-financial** - Fonctions financières
+- **Pydantic** - Validation de données
+
+### DevOps
+- **Docker** - Conteneurisation
+- **Docker Compose** - Orchestration multi-services
+- **ESLint** - Linting JavaScript/TypeScript
+- **Prettier** - Formatage de code
+
+## ⚠️ État du Projet
+
+> **Note importante :** Ce projet n'est pas totalement terminé et reste perfectible. Il s'agit d'une version fonctionnelle développée dans le cadre d'un test technique.
+
+### ✅ Fonctionnalités Implémentées
+- ✅ Authentification complète
+- ✅ Gestion des clients
+- ✅ Création de simulations avec assistant
+- ✅ Calculs financiers avancés
+- ✅ Interface responsive
+- ✅ API REST complète
+- ✅ Conteneurisation Docker
+
+### 🔄 Points d'Amélioration
+- 🔄 **Tests unitaires** et d'intégration
+- 🔄 **Validation côté client** plus robuste
+- 🔄 **Gestion d'erreurs** améliorée
+- 🔄 **Performance** et optimisations
+- 🔄 **Accessibilité** WCAG
+- 🔄 **Internationalisation** (i18n)
+- 🔄 **Documentation API** avec Swagger
+- 🔄 **Logs** et monitoring
+- 🔄 **Sécurité** renforcée
+- 🔄 **Cache** et optimisations DB
+
+### 🚧 Fonctionnalités Futures
+- 📊 **Graphiques avancés** avec Chart.js
+- 📄 **Export PDF** des simulations
+- 📧 **Notifications email**
+- 🔄 **Historique des modifications**
+- 👥 **Gestion des rôles** avancée
+- 🌙 **Mode sombre**
+- 📱 **Application mobile** (PWA)
+
+## 🤝 Contribution
+
+Ce projet étant un test technique, les contributions ne sont pas ouvertes. Cependant, n'hésitez pas à forker le projet pour vos propres expérimentations !
+
+## 📄 Licence
+
+Ce projet est développé à des fins éducatives dans le cadre d'un test technique.
 
 ---
 
-**Développé avec ❤️ pour simplifier les simulations financières**
+**Développé avec ❤️ pour le test technique Simulio**
