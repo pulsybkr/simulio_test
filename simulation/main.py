@@ -14,16 +14,14 @@ app = FastAPI(
     version="1.0.0",
 )
 
-# Configuration CORS pour permettre les appels depuis le frontend
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # À restreindre en production
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# Modèles Pydantic pour la validation des données
 class SimulationParameters(BaseModel):
     loanAmount: float = Field(..., gt=0, le=10000000, description="Montant du prêt (€)")
     duration: int = Field(..., ge=1, le=30, description="Durée en années")
@@ -69,61 +67,50 @@ class SimulationResponse(BaseModel):
     results: Union[SimulationResults, None]
     error: Union[str, None]
 
-# Fonction de calcul principale (adaptée de votre code existant)
 def calculate_simulation(params: SimulationParameters) -> SimulationResults:
     try:
-        # Paramètres d'entrée
-        N = params.duration  # Durée en années
-        C2 = params.loanAmount  # Montant du prêt
-        T = params.interestRate  # Taux d'intérêt
-        ASSU = params.insuranceRate  # Taux d'assurance
-        apport = params.downPayment  # Apport
-        fraisNotaire = params.notaryFees  # Frais de notaire (%)
-        fraisAgence = params.agencyFees  # Frais d'agence (%)
-        TRAVAUX = params.travaux or 0  # Travaux
-        revalorisationBien = params.revalorisationBien or 0  # Révalorisation du bien
+        N = params.duration
+        C2 = params.loanAmount
+        T = params.interestRate
+        ASSU = params.insuranceRate
+        apport = params.downPayment
+        fraisNotaire = params.notaryFees
+        fraisAgence = params.agencyFees
+        TRAVAUX = params.travaux or 0
+        revalorisationBien = params.revalorisationBien or 0
 
-        # Calculs préparatoires
         CDEPART = C2
         fraisAgence2 = (fraisAgence / 100) * C2
         fraisNotaire_amount = (fraisNotaire / 100) * C2
         C2 = C2 - apport
         garantieBancaire = (1.5 / 100) * C2
 
-        # Assurer que les frais sont positifs
         garantieBancaire = max(0, garantieBancaire)
         fraisAgence2 = max(0, fraisAgence2)
 
-        # Montant total à financer
         C2 = C2 + fraisNotaire_amount + garantieBancaire + fraisAgence2 + TRAVAUX
 
-        # Durée en mois
         N_months = N * 12
 
-        # Calcul de la mensualité
-        t = T / 12  # Taux mensuel
-        q = 1 + t / 100  # Coefficient multiplicateur
+        t = T / 12
+        q = 1 + t / 100
 
         if q ** N_months != 1:
             M = (q ** N_months * C2 * (1 - q) / (1 - q ** N_months)) + C2 * ((ASSU / 100) / 12)
         else:
             M = C2 / N_months + C2 * ((ASSU / 100) / 12)
 
-        # Calcul du tableau d'amortissement
-        T2 = T / 100  # Taux annuel décimal
+        T2 = T / 100
 
-        # Générer les dates
         start_date = datetime.datetime.now().replace(day=1)
         dates = pd.date_range(start=start_date, periods=N_months, freq='MS')
 
-        # Créer le DataFrame d'amortissement
         df = pd.DataFrame(index=dates, columns=['Mensualité', 'Capital Amorti', 'Intérêts', 'Capital restant dû'], dtype='float64')
         df.reset_index(inplace=True)
         df.index += 1
         df.index.name = "Mois"
         df.columns = ['Date', 'Mensualité', 'Capital Amorti', 'Intérêts', 'Capital restant dû']
 
-        # Calculs avec numpy_financial
         if N_months > 0 and C2 > 0:
             df["Mensualité"] = (-1 * numpy_financial.pmt(T2/12, N_months, C2) + C2 * ((ASSU/100)/12)).astype('float64')
             df["Capital Amorti"] = (-1 * numpy_financial.ppmt(T2/12, df.index, N_months, C2)).astype('float64')
@@ -131,7 +118,6 @@ def calculate_simulation(params: SimulationParameters) -> SimulationResults:
 
         df = df.round(2)
 
-        # Calcul du capital restant dû
         df["Capital restant dû"] = 0.0
         if len(df) > 0:
             df.loc[1, "Capital restant dû"] = C2 - df.loc[1, "Capital Amorti"]
@@ -142,7 +128,6 @@ def calculate_simulation(params: SimulationParameters) -> SimulationResults:
             if previous_balance > 0:
                 df.loc[period, "Capital restant dû"] = previous_balance - principal_paid
 
-        # Calcul de l'évolution de la valeur du bien
         property_evolution = []
         current_value = CDEPART
 
@@ -160,10 +145,8 @@ def calculate_simulation(params: SimulationParameters) -> SimulationResults:
 
             current_value *= (1 + revalorisationBien / 100)
 
-        # Calcul du salaire minimum requis
         salary_requirement = M * 100 / 35 if M > 0 else 0
 
-        # Préparer le tableau d'amortissement pour la réponse
         amortization_table = []
         for idx, row in df.iterrows():
             amortization_table.append({
@@ -175,7 +158,6 @@ def calculate_simulation(params: SimulationParameters) -> SimulationResults:
                 "balance": float(row['Capital restant dû'])
             })
 
-        # Calculs finaux
         total_interest = float(df['Intérêts'].sum())
         total_insurance = float(C2 * (ASSU / 100) * (N / 12))
         total_cost = float(M * N_months)
@@ -193,7 +175,6 @@ def calculate_simulation(params: SimulationParameters) -> SimulationResults:
     except Exception as e:
         raise HTTPException(status_code=400, detail=f"Erreur lors du calcul: {str(e)}")
 
-# Routes API
 @app.get("/")
 def read_root():
     return {

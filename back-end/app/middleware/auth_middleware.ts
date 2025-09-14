@@ -25,14 +25,12 @@ export default class AuthMiddleware {
 
       const user = ctx.auth.user!
 
-      // Vérifier si l'utilisateur est actif
       if (!user.isActive) {
         return ctx.response.forbidden({
           message: 'Votre compte est désactivé',
         })
       }
 
-      // Vérifier les rôles si spécifiés
       if (options.roles && options.roles.length > 0) {
         if (!options.roles.includes(user.role)) {
           return ctx.response.forbidden({

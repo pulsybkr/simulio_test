@@ -8,7 +8,7 @@
             Mes Simulations
           </h1>
           <p class="mt-2 text-gray-600">
-            Gérez et consultez vos simulations financières
+            {{ authStore.isClient ? 'Consultez et créez vos simulations financières' : 'Gérez et consultez vos simulations financières' }}
           </p>
         </div>
 
@@ -148,9 +148,11 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import { useSimulationStore } from '@/stores/simulation'
+import { useAuthStore } from '@/stores/auth'
 import Input from '@/components/ui/Input.vue'
 
 const simulationStore = useSimulationStore()
+const authStore = useAuthStore()
 
 const searchQuery = ref('')
 const statusFilter = ref('')

@@ -5,18 +5,18 @@ export const createSimulationValidator = vine.compile(
     name: vine.string().trim().minLength(1).maxLength(255),
     clientId: vine.number().positive().optional(),
     parameters: vine.object({
-      loanAmount: vine.number().positive().max(10000000), // Max 10M€
-      duration: vine.number().positive().min(1).max(30), // 1-30 ans
-      interestRate: vine.number().min(0).max(20), // 0-20%
-      insuranceRate: vine.number().min(0).max(5), // 0-5%
+      loanAmount: vine.number().positive().max(100000000),
+      duration: vine.number().positive().min(1).max(30),
+      interestRate: vine.number().min(0).max(20),
+      insuranceRate: vine.number().min(0).max(5),
       downPayment: vine.number().min(0),
-      notaryFees: vine.number().min(0).max(100), // 0-100%
-      agencyFees: vine.number().min(0).max(100), // 0-100%
+      notaryFees: vine.number().min(0).max(100),
+      agencyFees: vine.number().min(0).max(100),
       propertyValue: vine.number().positive(),
       monthlyIncome: vine.number().min(0).optional(),
       monthlyCharges: vine.number().min(0).optional(),
       travaux: vine.number().min(0).optional(),
-      revalorisationBien: vine.number().min(-10).max(20).optional(), // -10% à +20%
+      revalorisationBien: vine.number().min(-10).max(20).optional(),
     }),
   })
 )

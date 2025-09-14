@@ -4,7 +4,6 @@ export default class extends BaseSchema {
   protected tableName = 'add_foreign_keys'
 
   async up() {
-    // Ajouter les contraintes de clés étrangères
     this.schema.alterTable('auth_access_tokens', (table) => {
       table.foreign('tokenable_id').references('id').inTable('users').onDelete('CASCADE')
     })
@@ -15,7 +14,6 @@ export default class extends BaseSchema {
   }
 
   async down() {
-    // Supprimer les contraintes de clés étrangères
     this.schema.alterTable('auth_access_tokens', (table) => {
       table.dropForeign(['tokenable_id'])
     })

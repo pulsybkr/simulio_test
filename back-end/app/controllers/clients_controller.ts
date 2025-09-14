@@ -4,9 +4,6 @@ import User from '#models/user'
 import { createClientValidator, updateClientValidator } from '#validators/client'
 
 export default class ClientsController {
-  /**
-   * Liste des clients selon le rôle de l'utilisateur
-   */
   async index({ response, auth }: HttpContext) {
     try {
       const user = auth.user!
@@ -15,17 +12,13 @@ export default class ClientsController {
         .preload('assignedAgent')
         .preload('simulations')
 
-      // Filtrer selon le rôle
       if (user.role === 'client') {
-        // Les clients ne voient que leurs propres informations (pas applicable ici)
         return response.forbidden({
           message: 'Accès refusé',
         })
       } else if (user.role === 'agent') {
-        // Les agents voient seulement leurs clients assignés
         query = query.where('assignedAgentId', user.id)
       }
-      // Les admins voient tous les clients
 
       const clients = await query.orderBy('createdAt', 'desc')
 
@@ -56,29 +49,23 @@ export default class ClientsController {
     }
   }
 
-  /**
-   * Création d'un nouveau client
-   */
   async store({ request, response, auth }: HttpContext) {
     try {
       const user = auth.user!
       const payload = await request.validateUsing(createClientValidator)
 
-      // Vérifier les permissions
       if (user.role === 'client') {
         return response.forbidden({
           message: 'Vous n\'avez pas les permissions pour créer un client',
         })
       }
 
-      // Si c'est un agent, il ne peut assigner que lui-même
       if (user.role === 'agent' && payload.assignedAgentId && payload.assignedAgentId !== user.id) {
         return response.forbidden({
           message: 'Vous ne pouvez assigner des clients qu\'à vous-même',
         })
       }
 
-      // Vérifier si l'email existe déjà (dans User ou Client)
       const existingUser = await User.findBy('email', payload.email)
       const existingClient = await Client.findBy('email', payload.email)
       if (existingUser || existingClient) {
@@ -96,7 +83,6 @@ export default class ClientsController {
         assignedAgentId: payload.assignedAgentId || (user.role === 'agent' ? user.id : null),
       })
 
-      // Créer un compte utilisateur si un mot de passe est fourni
       let userAccount = null
       if (payload.password && payload.email) {
         try {
@@ -109,7 +95,6 @@ export default class ClientsController {
             isActive: true,
           })
         } catch (userError) {
-          // Si la création de l'utilisateur échoue, supprimer le client créé
           await client.delete()
           throw new Error('Erreur lors de la création du compte utilisateur: ' + userError.message)
         }
@@ -139,7 +124,6 @@ export default class ClientsController {
     } catch (error) {
       console.error('Erreur création client:', error)
       
-      // Si c'est une erreur de validation VineJS
       if (error.messages) {
         return response.badRequest({
           message: 'Données invalides',
@@ -147,7 +131,6 @@ export default class ClientsController {
         })
       }
       
-      // Si c'est une erreur de contrainte de base de données (email unique, etc.)
       if (error.code === 'ER_DUP_ENTRY' || error.constraint) {
         return response.badRequest({
           message: 'Un client avec cet email existe déjà',
@@ -160,9 +143,6 @@ export default class ClientsController {
     }
   }
 
-  /**
-   * Affichage d'un client spécifique
-   */
   async show({ params, response, auth }: HttpContext) {
     try {
       const user = auth.user!
@@ -180,7 +160,6 @@ export default class ClientsController {
         })
       }
 
-      // Vérifier les permissions
       if (user.role === 'agent' && client.assignedAgentId !== user.id) {
         return response.forbidden({
           message: 'Vous n\'avez pas accès à ce client',
@@ -215,9 +194,6 @@ export default class ClientsController {
     }
   }
 
-  /**
-   * Mise à jour d'un client
-   */
   async update({ params, request, response, auth }: HttpContext) {
     try {
       const user = auth.user!
@@ -231,14 +207,12 @@ export default class ClientsController {
         })
       }
 
-      // Vérifier les permissions
       if (user.role === 'agent' && client.assignedAgentId !== user.id) {
         return response.forbidden({
           message: 'Vous n\'avez pas les permissions pour modifier ce client',
         })
       }
 
-      // Si c'est un agent, il ne peut pas changer l'assignation
       if (user.role === 'agent' && payload.assignedAgentId && payload.assignedAgentId !== user.id) {
         return response.forbidden({
           message: 'Vous ne pouvez pas réassigner ce client',
@@ -270,14 +244,10 @@ export default class ClientsController {
     }
   }
 
-  /**
-   * Suppression d'un client
-   */
   async destroy({ params, response, auth }: HttpContext) {
     try {
       const user = auth.user!
 
-      // Seuls les admins peuvent supprimer des clients
       if (user.role !== 'admin') {
         return response.forbidden({
           message: 'Vous n\'avez pas les permissions pour supprimer un client',

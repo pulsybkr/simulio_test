@@ -18,7 +18,6 @@ export default class extends BaseSchema {
       table.timestamp('updated_at').nullable()
     })
 
-    // Pas de contrainte FK pour l'instant - sera ajoutée manuellement
   }
 
   async down() {

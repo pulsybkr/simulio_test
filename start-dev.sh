@@ -1,9 +1,7 @@
 #!/bin/bash
 
-# Script de développement pour Simulio
 echo "🚀 Démarrage de Simulio en mode développement..."
 
-# Fonction pour vérifier si un port est libre
 check_port() {
     local port=$1
     if lsof -Pi :$port -sTCP:LISTEN -t >/dev/null ; then
@@ -13,13 +11,11 @@ check_port() {
     return 0
 }
 
-# Vérifier les ports nécessaires
 check_port 3306 || exit 1  # MySQL
 check_port 3333 || exit 1  # Backend
 check_port 8000 || exit 1  # Simulation API
 check_port 8080 || exit 1  # Frontend
 
-# Démarrer MySQL avec Docker
 echo "🐳 Démarrage de MySQL..."
 docker run --name simulio_mysql_dev \
     -e MYSQL_ROOT_PASSWORD=rootpassword \
@@ -29,28 +25,23 @@ docker run --name simulio_mysql_dev \
     -p 3306:3306 \
     -d mysql:8.0
 
-# Attendre que MySQL soit prêt
 echo "⏳ Attente de MySQL..."
 sleep 10
 
-# Démarrer l'API de simulation en arrière-plan
 echo "🧮 Démarrage de l'API Simulation..."
 cd simulation
 python main.py &
 SIMULATION_PID=$!
 cd ..
 
-# Démarrer le backend en arrière-plan
 echo "🔧 Démarrage du Backend..."
 cd back-end
 npm run dev &
 BACKEND_PID=$!
 cd ..
 
-# Attendre que les services soient prêts
 sleep 5
 
-# Démarrer le frontend
 echo "🎨 Démarrage du Frontend..."
 cd front-end
 npm run dev &
@@ -71,7 +62,6 @@ echo "   Client: client@simulio.com / Client123!"
 echo ""
 echo "🛑 Pour arrêter : Ctrl+C ou ./stop-dev.sh"
 
-# Fonction de nettoyage
 cleanup() {
     echo ""
     echo "🧹 Nettoyage des processus..."
@@ -87,8 +77,6 @@ cleanup() {
     exit 0
 }
 
-# Capturer le signal d'arrêt
 trap cleanup SIGINT SIGTERM
 
-# Attendre indéfiniment
 wait

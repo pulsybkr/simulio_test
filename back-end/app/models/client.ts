@@ -43,7 +43,6 @@ export default class Client extends BaseModel {
   })
   declare simulations: HasMany<typeof Simulation>
 
-  // Computed properties
   get fullName(): string {
     return `${this.firstName} ${this.lastName}`
   }

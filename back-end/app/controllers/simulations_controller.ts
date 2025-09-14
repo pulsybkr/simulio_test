@@ -5,9 +5,6 @@ import { createSimulationValidator, updateSimulationValidator } from '#validator
 import axios from 'axios'
 
 export default class SimulationsController {
-  /**
-   * Liste des simulations selon le rôle de l'utilisateur
-   */
   async index({ request, response, auth }: HttpContext) {
     try {
       const user = auth.user!
@@ -17,18 +14,14 @@ export default class SimulationsController {
         .preload('client')
         .preload('createdBy')
 
-      // Filtrer selon le rôle
-      if (user.role === 'client') {
-        // Les clients voient seulement leurs propres simulations
-        // On trouve d'abord le client associé à l'utilisateur
+      if (user.role === 'client') { 
         const client = await Client.findBy('email', user.email)
         if (client) {
           query = query.where('clientId', client.id)
         } else {
           return response.ok({ simulations: [] })
         }
-      } else if (user.role === 'agent') {
-        // Les agents voient les simulations de leurs clients + simulations sans client
+      } else if (user.role === 'agent') {   
         const clientIds = await Client.query()
           .where('assignedAgentId', user.id)
           .select('id')
@@ -39,24 +32,20 @@ export default class SimulationsController {
                     .orWhereNull('clientId')
           })
         } else {
-          // Si l'agent n'a pas de clients, il voit seulement les simulations sans client
           query = query.whereNull('clientId')
         }
       }
-      // Les admins voient toutes les simulations
 
-      // Filtrer par client si spécifié
       if (clientId) {
         query = query.where('clientId', clientId)
       }
 
       const simulations = await query
         .orderBy('createdAt', 'desc')
-        .limit(50) // Limiter pour la performance
+        .limit(50)
 
       return response.ok({
         simulations: simulations.map(simulation => {
-          // Parser les résultats JSON pour l'aperçu
           let parsedResults = null
           if (simulation.results) {
             try {
@@ -99,62 +88,58 @@ export default class SimulationsController {
     }
   }
 
-  /**
-   * Création d'une nouvelle simulation
-   */
+
   async store({ request, response, auth }: HttpContext) {
     try {
       const user = auth.user!
-      
-      // Vérifier que les clients ne peuvent pas créer de simulations
-      if (user.role === 'client') {
-        return response.forbidden({
-          message: 'Les clients ne peuvent pas créer de nouvelles simulations',
-        })
-      }
       
       console.log('Données reçues du frontend:', request.body())
       const payload = await request.validateUsing(createSimulationValidator)
       console.log('Données validées:', payload)
 
-      // Vérifier que le client existe et que l'utilisateur a les droits (si un client est spécifié)
-      let client = null
-      if (payload.clientId) {
-        client = await Client.find(payload.clientId)
+      let clientId = payload.clientId
 
+      if (user.role === 'client') {
+        const client = await Client.findBy('email', user.email)
         if (!client) {
-          return response.notFound({
-            message: 'Client non trouvé',
+          return response.forbidden({
+            message: 'Profil client non trouvé. Veuillez contacter votre agent.',
           })
         }
+        clientId = client.id
+      } else {
+        if (clientId) {
+          const client = await Client.find(clientId)
 
-        // Vérifier les permissions
-        if (user.role === 'agent' && client.assignedAgentId !== user.id) {
-          return response.forbidden({
-            message: 'Vous n\'avez pas les permissions pour créer une simulation pour ce client',
-          })
+          if (!client) {
+            return response.notFound({
+              message: 'Client non trouvé',
+            })
+          }
+
+          if (user.role === 'agent' && client.assignedAgentId !== user.id) {
+            return response.forbidden({
+              message: 'Vous n\'avez pas les permissions pour créer une simulation pour ce client',
+            })
+          }
         }
       }
 
-      // Créer la simulation avec sérialisation manuelle des paramètres
       const simulation = new Simulation()
       simulation.name = payload.name
-      simulation.clientId = payload.clientId || null
+      simulation.clientId = clientId || null
       simulation.createdById = user.id
       simulation.parameters = JSON.stringify(payload.parameters)
       simulation.status = 'pending'
       await simulation.save()
 
-      // Lancer le calcul en arrière-plan
       this.processSimulation(simulation.id)
 
-      // Charger les relations seulement si elles existent
       if (simulation.clientId) {
         await simulation.load('client')
       }
       await simulation.load('createdBy')
 
-      // Parser les paramètres pour le frontend
       let parsedParameters = null
       try {
         parsedParameters = JSON.parse(simulation.parameters)
@@ -169,7 +154,7 @@ export default class SimulationsController {
           name: simulation.name,
           status: simulation.status,
           parameters: parsedParameters,
-          results: null, // Nouveau, donc pas encore de résultats
+          results: null,
           client: simulation.client,
           createdBy: simulation.createdBy,
           createdAt: simulation.createdAt,
@@ -183,9 +168,6 @@ export default class SimulationsController {
     }
   }
 
-  /**
-   * Affichage d'une simulation spécifique
-   */
   async show({ params, response, auth }: HttpContext) {
     try {
       const user = auth.user!
@@ -202,9 +184,7 @@ export default class SimulationsController {
         })
       }
 
-      // Vérifier les permissions
       if (user.role === 'client') {
-        // Vérifier que la simulation appartient au client connecté
         const client = await Client.findBy('email', user.email)
         if (!client || simulation.clientId !== client.id) {
           return response.forbidden({
@@ -212,7 +192,6 @@ export default class SimulationsController {
           })
         }
       } else if (user.role === 'agent') {
-        // Vérifier que la simulation appartient à un client de l'agent ou n'a pas de client
         if (simulation.client && simulation.client.assignedAgentId !== user.id) {
           return response.forbidden({
             message: 'Vous n\'avez pas accès à cette simulation',
@@ -220,7 +199,6 @@ export default class SimulationsController {
         }
       }
 
-      // Parser les données JSON pour le frontend
       let parsedParameters = null
       let parsedResults = null
       
@@ -259,9 +237,7 @@ export default class SimulationsController {
     }
   }
 
-  /**
-   * Mise à jour d'une simulation
-   */
+
   async update({ params, request, response, auth }: HttpContext) {
     try {
       const user = auth.user!
@@ -275,13 +251,11 @@ export default class SimulationsController {
         })
       }
 
-      // Vérifier les permissions
       if (user.role === 'client') {
         return response.forbidden({
           message: 'Vous n\'avez pas les permissions pour modifier une simulation',
         })
       } else if (user.role === 'agent') {
-        // Si la simulation a un client, vérifier qu'il appartient à l'agent
         if (simulation.clientId) {
           const client = await Client.find(simulation.clientId)
           if (!client || client.assignedAgentId !== user.id) {
@@ -290,12 +264,9 @@ export default class SimulationsController {
             })
           }
         }
-        // Si pas de client, l'agent peut modifier (simulation créée par lui)
       }
 
-      // Si les paramètres changent, relancer le calcul
       if (payload.parameters) {
-        // Parser les paramètres existants et les fusionner avec les nouveaux
         let existingParameters = {}
         try {
           existingParameters = JSON.parse(simulation.parameters)
@@ -308,7 +279,6 @@ export default class SimulationsController {
         simulation.status = 'pending'
         simulation.results = null
 
-        // Relancer le calcul
         this.processSimulation(simulation.id)
       }
 
@@ -316,9 +286,7 @@ export default class SimulationsController {
         simulation.name = payload.name
       }
 
-      // Gérer l'assignation/désassignation de client
       if (payload.clientId !== undefined) {
-        // Vérifier que le client existe si un ID est fourni
         if (payload.clientId) {
           const client = await Client.find(payload.clientId)
           if (!client) {
@@ -327,7 +295,6 @@ export default class SimulationsController {
             })
           }
           
-          // Vérifier les permissions pour assigner ce client
           if (user.role === 'agent' && client.assignedAgentId !== user.id) {
             return response.forbidden({
               message: 'Vous ne pouvez assigner que vos propres clients',
@@ -340,7 +307,6 @@ export default class SimulationsController {
 
       await simulation.save()
 
-      // Charger les relations pour la réponse
       if (simulation.clientId) {
         await simulation.load('client')
       }
@@ -379,9 +345,6 @@ export default class SimulationsController {
     }
   }
 
-  /**
-   * Suppression d'une simulation
-   */
   async destroy({ params, response, auth }: HttpContext) {
     try {
       const user = auth.user!
@@ -394,7 +357,6 @@ export default class SimulationsController {
         })
       }
 
-      // Vérifier les permissions
       if (user.role === 'client') {
         return response.forbidden({
           message: 'Vous n\'avez pas les permissions pour supprimer une simulation',
@@ -421,9 +383,7 @@ export default class SimulationsController {
     }
   }
 
-  /**
-   * Traite une simulation en appelant l'API Python
-   */
+
   private async processSimulation(simulationId: number) {
     try {
       const simulation = await Simulation.find(simulationId)
@@ -432,16 +392,14 @@ export default class SimulationsController {
       simulation.status = 'processing'
       await simulation.save()
 
-      // Appeler l'API Python (à adapter selon votre configuration)
       const simulationApiUrl = process.env.SIMULATION_API_URL || 'http://localhost:8000'
 
-      console.log(`Appel de l'API Python pour la simulation ${simulationId}`)
+      // console.log(`Appel de l'API Python pour la simulation ${simulationId}`)
       
-      // Parser les paramètres depuis la chaîne JSON
       let parsedParameters
       try {
         parsedParameters = JSON.parse(simulation.parameters)
-        console.log('Paramètres parsés:', parsedParameters)
+        // console.log('Paramètres parsés:', parsedParameters)
       } catch (error) {
         console.error('Erreur lors du parsing des paramètres:', error)
         simulation.status = 'failed'
@@ -452,7 +410,7 @@ export default class SimulationsController {
       const requestData = {
         parameters: parsedParameters,
       }
-      console.log('Données envoyées à l\'API:', JSON.stringify(requestData))
+      // console.log('Données envoyées à l\'API:', JSON.stringify(requestData))
 
       const response = await axios.post(`${simulationApiUrl}/simulate`, requestData)
 
@@ -461,10 +419,8 @@ export default class SimulationsController {
       if (response.data.success) {
         simulation.status = 'completed'
 
-        // Valider et transformer les données reçues de l'API Python
         const rawResults = response.data.results
 
-        // S'assurer que les données sont correctement structurées
         const validatedResults = {
           monthlyPayment: Number(rawResults.monthlyPayment) || 0,
           totalInterest: Number(rawResults.totalInterest) || 0,
@@ -491,8 +447,7 @@ export default class SimulationsController {
           salaryRequirement: Number(rawResults.salaryRequirement) || 0,
         }
 
-        console.log('Résultats validés:', validatedResults)
-        // Forcer la sérialisation JSON manuelle
+        // console.log('Résultats validés:', validatedResults)
         simulation.results = JSON.stringify(validatedResults)
       } else {
         simulation.status = 'failed'
@@ -500,7 +455,7 @@ export default class SimulationsController {
       }
 
       await simulation.save()
-      console.log(`Simulation ${simulationId} sauvegardée avec succès`)
+      // console.log(`Simulation ${simulationId} sauvegardée avec succès`)
     } catch (error) {
       const simulation = await Simulation.find(simulationId)
       if (simulation) {

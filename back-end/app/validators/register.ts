@@ -17,9 +17,7 @@ export const registerValidator = vine.compile(
       .minLength(8)
       .maxLength(100)
       .confirmed()
-      .regex(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]/, {
-        message: 'Le mot de passe doit contenir au moins une majuscule, une minuscule, un chiffre et un caractère spécial',
-      }),
+      .regex(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]/),
     role: vine.enum(['admin', 'agent', 'client']).optional(),
   })
 )

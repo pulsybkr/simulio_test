@@ -6,7 +6,7 @@ import Client from '#models/client'
 
 export interface SimulationParameters {
   loanAmount: number
-  duration: number // en années
+  duration: number
   interestRate: number
   insuranceRate: number
   downPayment: number
@@ -69,7 +69,6 @@ export default class Simulation extends BaseModel {
   @column.dateTime({ autoCreate: true, autoUpdate: true })
   declare updatedAt: DateTime | null
 
-  // Relations
   @belongsTo(() => Client, {
     foreignKey: 'clientId',
   })
@@ -80,7 +79,6 @@ export default class Simulation extends BaseModel {
   })
   declare createdBy: BelongsTo<typeof User>
 
-  // Computed properties
   get isCompleted(): boolean {
     return this.status === 'completed'
   }

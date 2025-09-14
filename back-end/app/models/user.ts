@@ -41,7 +41,6 @@ export default class User extends compose(BaseModel, AuthFinder) {
   @column.dateTime({ autoCreate: true, autoUpdate: true })
   declare updatedAt: DateTime | null
 
-  // Relations
   @hasMany(() => Client, {
     foreignKey: 'assignedAgentId',
   })
@@ -54,7 +53,6 @@ export default class User extends compose(BaseModel, AuthFinder) {
 
   static accessTokens = DbAccessTokensProvider.forModel(User)
 
-  // Computed properties
   get fullName(): string {
     return `${this.firstName} ${this.lastName}`
   }

@@ -11,13 +11,10 @@ export default class extends BaseSchema {
       table.integer('client_id').unsigned().nullable().references('id').inTable('clients').onDelete('CASCADE')
       table.integer('created_by_id').unsigned().references('id').inTable('users').onDelete('CASCADE')
 
-      // Paramètres de la simulation
       table.text('parameters').notNullable()
 
-      // Résultats de la simulation
       table.text('results').nullable()
 
-      // Statut de la simulation
       table.enum('status', ['pending', 'processing', 'completed', 'failed']).defaultTo('pending')
 
       table.timestamp('created_at').notNullable()

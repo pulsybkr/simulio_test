@@ -4,9 +4,6 @@ import { registerValidator, loginValidator } from '#validators/register'
 import logger from '@adonisjs/core/services/logger'
 
 export default class AuthController {
-  /**
-   * Inscription d'un nouvel utilisateur
-   */
   async register({ request, response }: HttpContext) {
     try {
       const payload = await request.validateUsing(registerValidator)
@@ -66,9 +63,6 @@ export default class AuthController {
     }
   }
 
-  /**
-   * Connexion d'un utilisateur
-   */
   async login({ request, response, auth }: HttpContext) {
     try {
       const { email, password } = await request.validateUsing(loginValidator)
@@ -133,9 +127,6 @@ export default class AuthController {
     }
   }
 
-  /**
-   * Déconnexion d'un utilisateur
-   */
   async logout({ response, auth }: HttpContext) {
     try {
       const user = auth.user!
@@ -151,9 +142,6 @@ export default class AuthController {
     }
   }
 
-  /**
-   * Récupération des informations de l'utilisateur connecté
-   */
   async me({ response, auth }: HttpContext) {
     try {
       const user = auth.user!
@@ -177,9 +165,6 @@ export default class AuthController {
     }
   }
 
-  /**
-   * Rafraîchissement du token
-   */
   async refresh({ response, auth }: HttpContext) {
     try {
       const user = auth.user!

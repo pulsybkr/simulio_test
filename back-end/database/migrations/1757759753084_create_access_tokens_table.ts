@@ -17,8 +17,6 @@ export default class extends BaseSchema {
       table.timestamp('last_used_at').nullable()
       table.timestamp('expires_at').nullable()
     })
-
-    // Pas de contrainte FK pour l'instant - sera ajoutée manuellement
   }
 
   async down() {

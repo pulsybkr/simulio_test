@@ -204,14 +204,12 @@ const navigationItems = computed(() => {
     })
   }
 
-  // Ajouter Nouvelle Simulation seulement pour admin et agent (pas pour les clients)
-  if (authStore.isAdmin || authStore.isAgent) {
-    items.push({
-      name: 'Nouvelle Simulation',
-      href: '/simulate',
-      icon: Plus
-    })
-  }
+  // Ajouter Nouvelle Simulation pour tous les utilisateurs
+  items.push({
+    name: 'Nouvelle Simulation',
+    href: '/simulate',
+    icon: Plus
+  })
 
   return items
 })

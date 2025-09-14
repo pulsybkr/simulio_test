@@ -621,6 +621,7 @@
 import { ref, computed, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useSimulationStore } from '@/stores/simulation'
+import { useAuthStore } from '@/stores/auth'
 import Card from '@/components/ui/Card.vue'
 import Button from '@/components/ui/Button.vue'
 import Input from '@/components/ui/Input.vue'
@@ -629,6 +630,7 @@ import type { SimulationParameters } from '@/types'
 
 const router = useRouter()
 const simulationStore = useSimulationStore()
+const authStore = useAuthStore()
 
 const currentStep = ref(1)
 const simulationName = ref('')
@@ -750,9 +752,14 @@ const createSimulation = async () => {
   errorMessage.value = ''
 
   try {
-    const simulationData = {
+    const simulationData: any = {
       name: simulationName.value,
       parameters: parameters.value,
+    }
+
+    // Les clients n'ont pas besoin de spécifier clientId, c'est géré automatiquement côté backend
+    if (!authStore.isClient) {
+      simulationData.clientId = null // Pour les admins/agents, on peut spécifier un client plus tard
     }
 
     const newSimulation = await simulationStore.createSimulation(simulationData)

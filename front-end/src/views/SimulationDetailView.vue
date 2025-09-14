@@ -20,11 +20,10 @@
               ← Retour à la liste
             </router-link>
             <Button
-              v-if="authStore.isAdmin || authStore.isAgent"
               @click="openEditModal"
               variant="outline"
             >
-              Modifier les paramètres
+              {{ authStore.isClient ? 'Créer une variante' : 'Modifier les paramètres' }}
             </Button>
             <Button
               v-if="simulation?.status === 'completed'"
@@ -617,62 +616,412 @@
       </div>
     </div>
 
+    <!-- Modal de création de variante en cours -->
+    <Modal
+      :is-open="isCreatingVariant"
+      title="Création de la variante en cours..."
+      size="md"
+      @close="() => {}"
+    >
+      <template #header>
+        <h3 class="text-lg font-medium text-gray-900">
+          Création de la variante en cours...
+        </h3>
+        <!-- Pas de bouton de fermeture pour éviter l'interruption -->
+      </template>
+
+      <div class="text-center py-6">
+        <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto mb-4"></div>
+        <h3 class="text-lg font-medium text-gray-900 mb-2">
+          Calcul de votre simulation
+        </h3>
+        <p class="text-sm text-gray-600 mb-4">
+          Nous créons votre variante et effectuons les calculs financiers.
+          Cela peut prendre quelques instants...
+        </p>
+        <div class="flex items-center justify-center space-x-2 text-sm text-gray-500">
+          <svg class="w-4 h-4 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+          </svg>
+          <span>Calcul en cours...</span>
+        </div>
+      </div>
+    </Modal>
+
     <Modal
       :is-open="showEditModal"
-      title="Modifier les paramètres"
+      :title="authStore.isClient ? 'Créer une variante' : 'Modifier les paramètres'"
       size="lg"
       @close="closeEditModal"
     >
-      <div v-if="editParameters" class="space-y-4">
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+      <div v-if="editParameters" class="space-y-6">
+        <!-- Message explicatif pour les clients -->
+        <div v-if="authStore.isClient" class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+          <div class="flex items-start">
+            <div class="flex-shrink-0">
+              <svg class="w-5 h-5 text-blue-400 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+              </svg>
+            </div>
+            <div class="ml-3">
+              <h4 class="text-sm font-medium text-blue-900">Créer une variante</h4>
+              <p class="mt-1 text-sm text-blue-700">
+                Modifiez les paramètres pour créer une nouvelle simulation basée sur celle-ci.
+                La simulation originale restera inchangée.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Étape 1: Montant du prêt -->
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">
-              Montant du prêt (€)
-            </label>
-            <Input
-              v-model.number="editParameters.loanAmount"
-              type="number"
-              placeholder="250000"
+          <h4 class="text-sm font-medium text-gray-900 mb-3">Montant du prêt</h4>
+          <div class="max-w-md mx-auto">
+            <PriceSlider
+              v-model="editParameters.loanAmount"
+              label="Montant du prêt"
+              :min="50000"
+              :max="1000000"
+              :step="5000"
+              :shortcuts="[
+                { label: '100k€', value: 100000 },
+                { label: '200k€', value: 200000 },
+                { label: '300k€', value: 300000 },
+                { label: '500k€', value: 500000 }
+              ]"
             />
           </div>
+          </div>
 
+        <!-- Étape 2: Durée du prêt -->
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">
-              Durée (années)
-            </label>
-            <select
+          <h4 class="text-sm font-medium text-gray-900 mb-3">Durée du prêt</h4>
+          <div class="max-w-md mx-auto">
+            <div class="text-center mb-6">
+              <div class="text-3xl font-bold text-indigo-600">
+                {{ editParameters.duration }} ans
+              </div>
+              <div class="text-sm text-gray-500 mt-1">
+                Durée du prêt
+              </div>
+            </div>
+
+            <input
               v-model.number="editParameters.duration"
-              class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-            >
-              <option value="10">10 ans</option>
-              <option value="15">15 ans</option>
-              <option value="20">20 ans</option>
-              <option value="25">25 ans</option>
-              <option value="30">30 ans</option>
-            </select>
+              type="range"
+              min="10"
+              max="30"
+              step="5"
+              class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer slider"
+            />
+
+            <div class="flex justify-between text-xs text-gray-400 mt-2">
+              <span>10 ans</span>
+              <span>30 ans</span>
+            </div>
+
+            <div class="flex flex-wrap gap-2 justify-center mt-4">
+              <button
+                v-for="duration in [10, 15, 20, 25, 30]"
+                :key="duration"
+                @click="editParameters.duration = duration"
+                :class="[
+                  'px-3 py-1 text-xs rounded-full border transition-colors',
+                  editParameters.duration === duration
+                    ? 'bg-indigo-100 border-indigo-300 text-indigo-700'
+                    : 'bg-white border-gray-300 text-gray-600 hover:bg-gray-50'
+                ]"
+              >
+                {{ duration }} ans
+              </button>
+            </div>
+          </div>
           </div>
 
+        <!-- Étape 3: Taux d'intérêt -->
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">
-              Taux d'intérêt annuel (%)
-            </label>
-            <Input
+          <h4 class="text-sm font-medium text-gray-900 mb-3">Taux d'intérêt</h4>
+          <div class="max-w-md mx-auto">
+            <div class="text-center mb-6">
+              <div class="text-3xl font-bold text-indigo-600">
+                {{ editParameters.interestRate }}%
+              </div>
+              <div class="text-sm text-gray-500 mt-1">
+                Taux d'intérêt annuel
+              </div>
+            </div>
+
+            <input
               v-model.number="editParameters.interestRate"
-              type="number"
-              step="0.01"
-              placeholder="3.5"
+              type="range"
+              min="0.5"
+              max="6"
+              step="0.1"
+              class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer slider"
             />
+
+            <div class="flex justify-between text-xs text-gray-400 mt-2">
+              <span>0.5%</span>
+              <span>6%</span>
           </div>
 
+            <div class="flex flex-wrap gap-2 justify-center mt-4">
+              <button
+                v-for="rate in [1.5, 2.0, 2.5, 3.0, 3.5, 4.0]"
+                :key="rate"
+                @click="editParameters.interestRate = rate"
+                :class="[
+                  'px-3 py-1 text-xs rounded-full border transition-colors',
+                  editParameters.interestRate === rate
+                    ? 'bg-indigo-100 border-indigo-300 text-indigo-700'
+                    : 'bg-white border-gray-300 text-gray-600 hover:bg-gray-50'
+                ]"
+              >
+                {{ rate }}%
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Étape 4: Taux d'assurance -->
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">
-              Apport (€)
-            </label>
-            <Input
-              v-model.number="editParameters.downPayment"
-              type="number"
-              placeholder="50000"
+          <h4 class="text-sm font-medium text-gray-900 mb-3">Taux d'assurance</h4>
+          <div class="max-w-md mx-auto">
+            <div class="text-center mb-6">
+              <div class="text-3xl font-bold text-indigo-600">
+                {{ editParameters.insuranceRate }}%
+              </div>
+              <div class="text-sm text-gray-500 mt-1">
+                Taux d'assurance annuel
+              </div>
+            </div>
+
+            <input
+              v-model.number="editParameters.insuranceRate"
+              type="range"
+              min="0"
+              max="1.5"
+              step="0.05"
+              class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer slider"
             />
+
+            <div class="flex justify-between text-xs text-gray-400 mt-2">
+              <span>0%</span>
+              <span>1.5%</span>
+            </div>
+
+            <div class="flex flex-wrap gap-2 justify-center mt-4">
+              <button
+                v-for="rate in [0.1, 0.2, 0.3, 0.4, 0.5, 0.6]"
+                :key="rate"
+                @click="editParameters.insuranceRate = rate"
+                :class="[
+                  'px-3 py-1 text-xs rounded-full border transition-colors',
+                  editParameters.insuranceRate === rate
+                    ? 'bg-indigo-100 border-indigo-300 text-indigo-700'
+                    : 'bg-white border-gray-300 text-gray-600 hover:bg-gray-50'
+                ]"
+              >
+                {{ rate }}%
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Étape 5: Apport personnel -->
+        <div>
+          <h4 class="text-sm font-medium text-gray-900 mb-3">Apport personnel</h4>
+          <div class="max-w-md mx-auto">
+            <PriceSlider
+              v-model="editParameters.downPayment"
+              label="Apport personnel"
+              :min="0"
+              :max="Math.floor(editParameters.loanAmount * 0.5)"
+              :step="1000"
+              :shortcuts="[
+                { label: '0€', value: 0 },
+                { label: '10%', value: Math.floor(editParameters.loanAmount * 0.1) },
+                { label: '20%', value: Math.floor(editParameters.loanAmount * 0.2) },
+                { label: '30%', value: Math.floor(editParameters.loanAmount * 0.3) }
+              ]"
+            />
+          </div>
+        </div>
+
+        <!-- Étape 6: Valeur du bien -->
+        <div>
+          <h4 class="text-sm font-medium text-gray-900 mb-3">Valeur du bien</h4>
+          <div class="max-w-md mx-auto">
+            <PriceSlider
+              v-model="editParameters.propertyValue"
+              label="Valeur du bien"
+              :min="100000"
+              :max="2000000"
+              :step="10000"
+              :shortcuts="[
+                { label: '200k€', value: 200000 },
+                { label: '300k€', value: 300000 },
+                { label: '500k€', value: 500000 },
+                { label: '750k€', value: 750000 },
+                { label: '1M€', value: 1000000 }
+              ]"
+            />
+          </div>
+        </div>
+
+        <!-- Étape 7: Frais associés -->
+        <div>
+          <h4 class="text-sm font-medium text-gray-900 mb-6 text-center">Frais associés</h4>
+          <div class="max-w-md mx-auto space-y-6">
+            <!-- Frais de notaire -->
+            <div>
+              <div class="text-center mb-4">
+                <div class="text-2xl font-bold text-indigo-600">
+                  {{ editParameters.notaryFees }}%
+                </div>
+                <div class="text-sm text-gray-500">
+                  Frais de notaire
+                </div>
+              </div>
+
+              <input
+                v-model.number="editParameters.notaryFees"
+                type="range"
+                min="1"
+                max="8"
+                step="0.1"
+                class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer slider"
+              />
+
+              <div class="flex justify-between text-xs text-gray-400 mt-2">
+                <span>1%</span>
+                <span>8%</span>
+              </div>
+
+              <div class="flex flex-wrap gap-2 justify-center mt-2">
+                <button
+                  v-for="fee in [2.0, 2.5, 3.0, 3.5, 4.0]"
+                  :key="fee"
+                  @click="editParameters.notaryFees = fee"
+                  :class="[
+                    'px-2 py-1 text-xs rounded-full border transition-colors',
+                    editParameters.notaryFees === fee
+                      ? 'bg-indigo-100 border-indigo-300 text-indigo-700'
+                      : 'bg-white border-gray-300 text-gray-600 hover:bg-gray-50'
+                  ]"
+                >
+                  {{ fee }}%
+                </button>
+              </div>
+            </div>
+
+            <!-- Frais d'agence -->
+            <div>
+              <div class="text-center mb-4">
+                <div class="text-2xl font-bold text-green-600">
+                  {{ editParameters.agencyFees }}%
+                </div>
+                <div class="text-sm text-gray-500">
+                  Frais d'agence
+                </div>
+              </div>
+
+              <input
+                v-model.number="editParameters.agencyFees"
+                type="range"
+                min="0"
+                max="10"
+                step="0.1"
+                class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer slider"
+              />
+
+              <div class="flex justify-between text-xs text-gray-400 mt-2">
+                <span>0%</span>
+                <span>10%</span>
+              </div>
+
+              <div class="flex flex-wrap gap-2 justify-center mt-2">
+                <button
+                  v-for="fee in [0, 2.0, 3.0, 4.0, 5.0]"
+                  :key="fee"
+                  @click="editParameters.agencyFees = fee"
+                  :class="[
+                    'px-2 py-1 text-xs rounded-full border transition-colors',
+                    editParameters.agencyFees === fee
+                      ? 'bg-green-100 border-green-300 text-green-700'
+                      : 'bg-white border-gray-300 text-gray-600 hover:bg-gray-50'
+                  ]"
+                >
+                  {{ fee }}%
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Étape 8: Options avancées -->
+        <div>
+          <h4 class="text-sm font-medium text-gray-900 mb-6 text-center">Options avancées</h4>
+          <div class="max-w-md mx-auto space-y-6">
+            <!-- Travaux -->
+            <div>
+              <PriceSlider
+                v-model="editParameters.travaux"
+                label="Montant des travaux"
+                :min="0"
+                :max="200000"
+                :step="1000"
+                :shortcuts="[
+                  { label: '0€', value: 0 },
+                  { label: '10k€', value: 10000 },
+                  { label: '25k€', value: 25000 },
+                  { label: '50k€', value: 50000 },
+                  { label: '100k€', value: 100000 }
+                ]"
+              />
+            </div>
+
+            <!-- Revalorisation du bien -->
+            <div>
+              <div class="text-center mb-4">
+                <div class="text-2xl font-bold text-purple-600">
+                  {{ editParameters.revalorisationBien }}%
+                </div>
+                <div class="text-sm text-gray-500">
+                  Revalorisation annuelle du bien
+                </div>
+              </div>
+
+              <input
+                v-model.number="editParameters.revalorisationBien"
+                type="range"
+                min="-2"
+                max="5"
+                step="0.1"
+                class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer slider"
+              />
+
+              <div class="flex justify-between text-xs text-gray-400 mt-2">
+                <span>-2%</span>
+                <span>5%</span>
+              </div>
+
+              <div class="flex flex-wrap gap-2 justify-center mt-2">
+                <button
+                  v-for="rate in [0, 0.5, 1.0, 1.5, 2.0, 2.5]"
+                  :key="rate"
+                  @click="editParameters.revalorisationBien = rate"
+                  :class="[
+                    'px-2 py-1 text-xs rounded-full border transition-colors',
+                    editParameters.revalorisationBien === rate
+                      ? 'bg-purple-100 border-purple-300 text-purple-700'
+                      : 'bg-white border-gray-300 text-gray-600 hover:bg-gray-50'
+                  ]"
+                >
+                  {{ rate }}%
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -689,8 +1038,8 @@
             @click="saveParameters"
             :disabled="isUpdating"
           >
-            <span v-if="isUpdating">Mise à jour...</span>
-            <span v-else>Sauvegarder et recalculer</span>
+            <span v-if="isUpdating">{{ authStore.isClient ? 'Création en cours...' : 'Mise à jour...' }}</span>
+            <span v-else>{{ authStore.isClient ? 'Créer la variante' : 'Sauvegarder et recalculer' }}</span>
           </Button>
         </div>
       </template>
@@ -793,7 +1142,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted, computed } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { useSimulationStore } from '@/stores/simulation'
 import { useClientStore } from '@/stores/client'
 import { useAuthStore } from '@/stores/auth'
@@ -801,11 +1150,13 @@ import Card from '@/components/ui/Card.vue'
 import Button from '@/components/ui/Button.vue'
 import Input from '@/components/ui/Input.vue'
 import Modal from '@/components/ui/Modal.vue'
+import PriceSlider from '@/components/ui/PriceSlider.vue'
 import CreateClientModal from '@/components/ui/CreateClientModal.vue'
 import ClientCredentialsModal from '@/components/ui/ClientCredentialsModal.vue'
 import type { SimulationParameters } from '@/types'
 
 const route = useRoute()
+const router = useRouter()
 const simulationStore = useSimulationStore()
 const clientStore = useClientStore()
 const authStore = useAuthStore()
@@ -835,6 +1186,8 @@ const isAssigningClient = ref(false)
 const assignmentError = ref('')
 const createdClient = ref<any>(null)
 const generatedPassword = ref('')
+const isCreatingVariant = ref(false)
+const newSimulationId = ref<number | null>(null)
 
 // Computed properties
 const simulation = computed(() => simulationStore.currentSimulation)
@@ -877,6 +1230,41 @@ const stopPolling = () => {
   }
 }
 
+// Polling spécifique pour une nouvelle simulation créée
+const startPollingForNewSimulation = async (simulationId: number) => {
+  return new Promise<void>((resolve) => {
+    const pollInterval = setInterval(async () => {
+      try {
+        const updatedSimulation = await simulationStore.fetchSimulation(simulationId)
+
+        if (updatedSimulation.status === 'completed') {
+          // Simulation terminée, rediriger
+          clearInterval(pollInterval)
+          isCreatingVariant.value = false
+          newSimulationId.value = null
+          await router.push(`/simulations/${simulationId}`)
+          resolve()
+        } else if (updatedSimulation.status === 'failed') {
+          // Simulation échouée
+          clearInterval(pollInterval)
+          isCreatingVariant.value = false
+          newSimulationId.value = null
+          // Afficher un message d'erreur et rester sur la page actuelle
+          console.error('La simulation a échoué')
+          resolve()
+        }
+        // Si toujours en cours, continuer le polling
+      } catch (error) {
+        console.error('Erreur lors du polling de la nouvelle simulation:', error)
+        clearInterval(pollInterval)
+        isCreatingVariant.value = false
+        newSimulationId.value = null
+        resolve()
+      }
+    }, 2000) // Vérifier toutes les 2 secondes
+  })
+}
+
 onMounted(async () => {
   const simulationId = route.params.id as string
   try {
@@ -896,6 +1284,9 @@ onMounted(async () => {
 
 onUnmounted(() => {
   stopPolling()
+  // Nettoyer l'état de création de variante
+  isCreatingVariant.value = false
+  newSimulationId.value = null
 })
 
 // Modal functions
@@ -916,6 +1307,28 @@ const saveParameters = async () => {
   
   isUpdating.value = true
   try {
+    if (authStore.isClient) {
+      // Pour les clients : créer une nouvelle simulation avec indicateur de chargement
+      isCreatingVariant.value = true
+
+      const newSimulationName = `${simulation.value.name} - Variante`
+      const newSimulationData = {
+        name: newSimulationName,
+        parameters: editParameters.value,
+        clientId: simulation.value.clientId
+      }
+
+      const newSimulation = await simulationStore.createSimulation(newSimulationData)
+      newSimulationId.value = newSimulation.id
+
+      // Fermer la modale et afficher l'état de calcul
+      closeEditModal()
+
+      // Démarrer le polling pour suivre l'état de la nouvelle simulation
+      await startPollingForNewSimulation(newSimulation.id)
+
+    } else {
+      // Pour les admins et agents : modification de la simulation existante
     await simulationStore.updateSimulation(
       simulation.value.id,
       { parameters: editParameters.value }
@@ -924,9 +1337,12 @@ const saveParameters = async () => {
     // Redémarrer le polling si nécessaire
     if (simulation.value?.status === 'processing' || simulation.value?.status === 'pending') {
       startPolling()
+      }
     }
   } catch (error) {
     console.error('Erreur lors de la mise à jour:', error)
+    isCreatingVariant.value = false
+    newSimulationId.value = null
   } finally {
     isUpdating.value = false
   }
@@ -1085,3 +1501,38 @@ const previousParamSlide = () => {
   }
 }
 </script>
+
+<style scoped>
+.slider::-webkit-slider-thumb {
+  appearance: none;
+  height: 20px;
+  width: 20px;
+  border-radius: 50%;
+  background: #4f46e5;
+  cursor: pointer;
+  border: 2px solid #ffffff;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.slider::-moz-range-thumb {
+  height: 20px;
+  width: 20px;
+  border-radius: 50%;
+  background: #4f46e5;
+  cursor: pointer;
+  border: 2px solid #ffffff;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.slider::-webkit-slider-track {
+  height: 8px;
+  border-radius: 4px;
+  background: #e5e7eb;
+}
+
+.slider::-moz-range-track {
+  height: 8px;
+  border-radius: 4px;
+  background: #e5e7eb;
+}
+</style>

@@ -104,8 +104,8 @@
             Actions rapides
           </h3>
           <div class="flex flex-wrap gap-4">
+            <!-- Bouton de création pour tous les utilisateurs -->
             <router-link
-              v-if="authStore.isAdmin || authStore.isAgent"
               to="/simulate"
               class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700"
             >
@@ -115,6 +115,7 @@
               Nouvelle simulation
             </router-link>
 
+            <!-- Boutons pour admins et agents uniquement -->
             <router-link
               v-if="authStore.isAdmin || authStore.isAgent"
               to="/clients"
@@ -127,11 +128,27 @@
             </router-link>
 
             <!-- Message pour les clients -->
-            <div v-if="authStore.role === 'client'" class="text-center py-4">
-              <p class="text-gray-600">
-                Consultez vos simulations dans l'onglet "Simulations". 
-                Contactez votre agent pour créer de nouvelles simulations.
-              </p>
+            <div v-if="authStore.isClient" class="text-center py-4 w-full">
+              <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                <div class="flex items-center justify-center mb-2">
+                  <svg class="w-6 h-6 text-blue-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                  </svg>
+                  <h4 class="text-sm font-medium text-blue-900">Espace Client</h4>
+                </div>
+                <p class="text-sm text-blue-700 mb-3">
+                  Créez vos propres simulations financières, modifiez les paramètres existants pour créer des variantes, et consultez vos résultats détaillés.
+                </p>
+                <router-link
+                  to="/simulations"
+                  class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700"
+                >
+                  <svg class="-ml-1 mr-2 h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                  </svg>
+                  Voir mes simulations
+                </router-link>
+              </div>
             </div>
           </div>
         </div>
@@ -152,7 +169,7 @@
             <p class="mt-1 text-sm text-gray-500">
               Commencez par créer votre première simulation.
             </p>
-            <div class="mt-6">
+            <div v-if="authStore.isAdmin || authStore.isAgent" class="mt-6">
               <router-link
                 to="/simulate"
                 class="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700"
