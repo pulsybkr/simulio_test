@@ -83,9 +83,12 @@ services:
     environment:
       VITE_API_URL: http://localhost:3333
     ports:
-      - "8080:80"
+      - "5173:5173"
     depends_on:
       - backend
+    volumes:
+      - ./front-end:/app
+      - /app/node_modules
     networks:
       - simulio_network
 
