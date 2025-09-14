@@ -99,29 +99,26 @@ export default class SimulationsController {
 
       let clientId = payload.clientId
 
+      // Les clients ne peuvent pas créer de simulations
       if (user.role === 'client') {
-        const client = await Client.findBy('email', user.email)
+        return response.forbidden({
+          message: 'Vous n\'avez pas les permissions pour créer une simulation.',
+        })
+      }
+
+      if (clientId) {
+        const client = await Client.find(clientId)
+
         if (!client) {
-          return response.forbidden({
-            message: 'Profil client non trouvé. Veuillez contacter votre agent.',
+          return response.notFound({
+            message: 'Client non trouvé',
           })
         }
-        clientId = client.id
-      } else {
-        if (clientId) {
-          const client = await Client.find(clientId)
 
-          if (!client) {
-            return response.notFound({
-              message: 'Client non trouvé',
-            })
-          }
-
-          if (user.role === 'agent' && client.assignedAgentId !== user.id) {
-            return response.forbidden({
-              message: 'Vous n\'avez pas les permissions pour créer une simulation pour ce client',
-            })
-          }
+        if (user.role === 'agent' && client.assignedAgentId !== user.id) {
+          return response.forbidden({
+            message: 'Vous n\'avez pas les permissions pour créer une simulation pour ce client',
+          })
         }
       }
 

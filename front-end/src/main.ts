@@ -35,7 +35,7 @@ const router = createRouter({
     {
       path: '/simulate',
       component: () => import('@/views/SimulationWizardView.vue'),
-      meta: { requiresAuth: true }
+      meta: { requiresAuth: true, requiresRole: ['admin', 'agent'] }
     },
   ],
 })

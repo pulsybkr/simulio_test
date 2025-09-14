@@ -15,19 +15,20 @@
           <div class="flex flex-col space-y-2 sm:flex-row sm:space-x-3 sm:space-y-0">
             <router-link
               to="/simulations"
-              class="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
+              class="inline-flex text-center items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
             >
-              ← Retour à la liste
+              ← 
             </router-link>
             <Button
               @click="openEditModal"
               variant="outline"
             >
-              {{ authStore.isClient ? 'Créer une variante' : 'Modifier les paramètres' }}
+              {{ authStore.role === 'client' ? 'Modifier les paramètres' : 'Modifier les paramètres' }}
             </Button>
             <Button
               v-if="simulation?.status === 'completed'"
               @click="exportResults"
+              class="hidden"
             >
               Exporter
             </Button>
@@ -619,13 +620,13 @@
     <!-- Modal de création de variante en cours -->
     <Modal
       :is-open="isCreatingVariant"
-      title="Création de la variante en cours..."
+      title="Modification des paramètres en cours..."
       size="md"
       @close="() => {}"
     >
       <template #header>
         <h3 class="text-lg font-medium text-gray-900">
-          Création de la variante en cours...
+          Modification des paramètres en cours...
         </h3>
         <!-- Pas de bouton de fermeture pour éviter l'interruption -->
       </template>
@@ -650,13 +651,13 @@
 
     <Modal
       :is-open="showEditModal"
-      :title="authStore.isClient ? 'Créer une variante' : 'Modifier les paramètres'"
+      :title="authStore.role === 'client' ? 'Modifier les paramètres' : 'Modifier les paramètres'"
       size="lg"
       @close="closeEditModal"
     >
       <div v-if="editParameters" class="space-y-6">
         <!-- Message explicatif pour les clients -->
-        <div v-if="authStore.isClient" class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+        <div v-if="authStore.role === 'client'" class="bg-blue-50 border border-blue-200 rounded-lg p-4">
           <div class="flex items-start">
             <div class="flex-shrink-0">
               <svg class="w-5 h-5 text-blue-400 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -664,7 +665,7 @@
               </svg>
             </div>
             <div class="ml-3">
-              <h4 class="text-sm font-medium text-blue-900">Créer une variante</h4>
+              <h4 class="text-sm font-medium text-blue-900">Modifier les paramètres</h4>
               <p class="mt-1 text-sm text-blue-700">
                 Modifiez les paramètres pour créer une nouvelle simulation basée sur celle-ci.
                 La simulation originale restera inchangée.
@@ -1038,8 +1039,8 @@
             @click="saveParameters"
             :disabled="isUpdating"
           >
-            <span v-if="isUpdating">{{ authStore.isClient ? 'Création en cours...' : 'Mise à jour...' }}</span>
-            <span v-else>{{ authStore.isClient ? 'Créer la variante' : 'Sauvegarder et recalculer' }}</span>
+            <span v-if="isUpdating">{{ authStore.role === 'client' ? 'Création en cours...' : 'Mise à jour...' }}</span>
+            <span v-else>{{ authStore.role === 'client' ? 'Recalculer' : 'Sauvegarder et recalculer' }}</span>
           </Button>
         </div>
       </template>
@@ -1307,7 +1308,7 @@ const saveParameters = async () => {
   
   isUpdating.value = true
   try {
-    if (authStore.isClient) {
+    if (authStore.role === 'client') {
       // Pour les clients : créer une nouvelle simulation avec indicateur de chargement
       isCreatingVariant.value = true
 
