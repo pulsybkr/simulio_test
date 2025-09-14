@@ -84,8 +84,8 @@
 
 **Windows :**
 ```bash
-git clone <votre-repo>
-cd simulio
+git clone [<votre-repo>](https://github.com/pulsybkr/simulio_test.git)
+cd simulio_test
 setup.bat
 ```
 
