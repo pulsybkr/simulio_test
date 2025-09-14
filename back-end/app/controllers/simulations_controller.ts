@@ -316,7 +316,35 @@ export default class SimulationsController {
         simulation.name = payload.name
       }
 
+      // Gérer l'assignation/désassignation de client
+      if (payload.clientId !== undefined) {
+        // Vérifier que le client existe si un ID est fourni
+        if (payload.clientId) {
+          const client = await Client.find(payload.clientId)
+          if (!client) {
+            return response.notFound({
+              message: 'Client non trouvé',
+            })
+          }
+          
+          // Vérifier les permissions pour assigner ce client
+          if (user.role === 'agent' && client.assignedAgentId !== user.id) {
+            return response.forbidden({
+              message: 'Vous ne pouvez assigner que vos propres clients',
+            })
+          }
+        }
+        
+        simulation.clientId = payload.clientId
+      }
+
       await simulation.save()
+
+      // Charger les relations pour la réponse
+      if (simulation.clientId) {
+        await simulation.load('client')
+      }
+      await simulation.load('createdBy')
 
       return response.ok({
         message: 'Simulation mise à jour avec succès',
@@ -324,7 +352,23 @@ export default class SimulationsController {
           id: simulation.id,
           name: simulation.name,
           status: simulation.status,
-          parameters: simulation.parameters,
+          client: simulation.client ? {
+            id: simulation.client.id,
+            firstName: simulation.client.firstName,
+            lastName: simulation.client.lastName,
+            fullName: simulation.client.fullName,
+            email: simulation.client.email,
+          } : null,
+          createdBy: {
+            id: simulation.createdBy.id,
+            firstName: simulation.createdBy.firstName,
+            lastName: simulation.createdBy.lastName,
+            fullName: simulation.createdBy.fullName,
+          },
+          parameters: JSON.parse(simulation.parameters),
+          results: simulation.results ? JSON.parse(simulation.results) : null,
+          createdAt: simulation.createdAt,
+          updatedAt: simulation.updatedAt,
         },
       })
     } catch (error) {

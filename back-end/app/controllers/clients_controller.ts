@@ -78,6 +78,15 @@ export default class ClientsController {
         })
       }
 
+      // Vérifier si l'email existe déjà (dans User ou Client)
+      const existingUser = await User.findBy('email', payload.email)
+      const existingClient = await Client.findBy('email', payload.email)
+      if (existingUser || existingClient) {
+        return response.badRequest({
+          message: 'Cet email est déjà utilisé par un autre utilisateur ou client',
+        })
+      }
+
       const client = await Client.create({
         firstName: payload.firstName,
         lastName: payload.lastName,
@@ -128,9 +137,25 @@ export default class ClientsController {
         } : null,
       })
     } catch (error) {
+      console.error('Erreur création client:', error)
+      
+      // Si c'est une erreur de validation VineJS
+      if (error.messages) {
+        return response.badRequest({
+          message: 'Données invalides',
+          errors: error.messages,
+        })
+      }
+      
+      // Si c'est une erreur de contrainte de base de données (email unique, etc.)
+      if (error.code === 'ER_DUP_ENTRY' || error.constraint) {
+        return response.badRequest({
+          message: 'Un client avec cet email existe déjà',
+        })
+      }
+      
       return response.badRequest({
-        message: 'Erreur lors de la création du client',
-        errors: error.messages || [error.message],
+        message: error.message || 'Erreur lors de la création du client',
       })
     }
   }

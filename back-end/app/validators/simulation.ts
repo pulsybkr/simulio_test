@@ -24,6 +24,7 @@ export const createSimulationValidator = vine.compile(
 export const updateSimulationValidator = vine.compile(
   vine.object({
     name: vine.string().trim().minLength(1).maxLength(255).optional(),
+    clientId: vine.number().positive().optional(),
     parameters: vine.object({
       loanAmount: vine.number().positive().max(10000000).optional(),
       duration: vine.number().positive().min(1).max(30).optional(),

@@ -15,7 +15,7 @@
         <!-- Bouton d'ajout (Admin & Agent seulement) -->
         <Button
           v-if="authStore.isAdmin || authStore.isAgent"
-          @click="showCreateModal = true"
+          @click="showCreateClientModal = true"
           class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700"
         >
           <svg class="-ml-1 mr-2 h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -119,7 +119,7 @@
             Commencez par créer votre premier client.
           </p>
           <div class="mt-6" v-if="authStore.isAdmin || authStore.isAgent">
-            <Button @click="showCreateModal = true">
+            <Button @click="showCreateClientModal = true">
               Créer un client
             </Button>
           </div>
@@ -132,121 +132,21 @@
       </div>
     </div>
 
-    <!-- Modal de création/édition -->
-    <div
-      v-if="showCreateModal || showEditModal"
-      class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50"
-      @click.self="closeModal"
-    >
-      <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
-        <div class="mt-3">
-          <h3 class="text-lg font-medium text-gray-900 mb-4">
-            {{ showCreateModal ? 'Nouveau Client' : 'Modifier le Client' }}
-          </h3>
+    <!-- Modal de création de client -->
+    <CreateClientModal
+      :is-open="showCreateClientModal"
+      @close="closeCreateClientModal"
+      @client-created="handleClientCreated"
+    />
 
-          <form @submit.prevent="handleSubmit" class="space-y-4">
-            <div class="grid grid-cols-2 gap-4">
-              <div>
-                <label class="block text-sm font-medium text-gray-700">Prénom</label>
-                <Input
-                  v-model="clientForm.firstName"
-                  required
-                  :variant="formErrors.firstName ? 'error' : 'default'"
-                />
-                <p v-if="formErrors.firstName" class="text-red-500 text-xs mt-1">
-                  {{ formErrors.firstName }}
-                </p>
-              </div>
-
-              <div>
-                <label class="block text-sm font-medium text-gray-700">Nom</label>
-                <Input
-                  v-model="clientForm.lastName"
-                  required
-                  :variant="formErrors.lastName ? 'error' : 'default'"
-                />
-                <p v-if="formErrors.lastName" class="text-red-500 text-xs mt-1">
-                  {{ formErrors.lastName }}
-                </p>
-              </div>
-            </div>
-
-            <div>
-              <label class="block text-sm font-medium text-gray-700">Email</label>
-              <Input
-                v-model="clientForm.email"
-                type="email"
-                :variant="formErrors.email ? 'error' : 'default'"
-              />
-              <p v-if="formErrors.email" class="text-red-500 text-xs mt-1">
-                {{ formErrors.email }}
-              </p>
-            </div>
-
-            <div>
-              <label class="block text-sm font-medium text-gray-700">Téléphone</label>
-              <Input
-                v-model="clientForm.phone"
-                :variant="formErrors.phone ? 'error' : 'default'"
-              />
-              <p v-if="formErrors.phone" class="text-red-500 text-xs mt-1">
-                {{ formErrors.phone }}
-              </p>
-            </div>
-
-            <div>
-              <label class="block text-sm font-medium text-gray-700">Adresse</label>
-              <textarea
-                v-model="clientForm.address"
-                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-                rows="3"
-              ></textarea>
-            </div>
-
-            <!-- Sélection de l'agent (Admin seulement) -->
-            <div v-if="authStore.isAdmin">
-              <label class="block text-sm font-medium text-gray-700">Agent assigné</label>
-              <select
-                v-model="clientForm.assignedAgentId"
-                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-              >
-                <option value="">Sélectionner un agent</option>
-                <option
-                  v-for="agent in availableAgents"
-                  :key="agent.id"
-                  :value="agent.id"
-                >
-                  {{ agent.fullName }}
-                </option>
-              </select>
-            </div>
-
-            <!-- Erreur générale -->
-            <div v-if="modalError" class="rounded-md bg-red-50 p-4">
-              <p class="text-sm text-red-700">{{ modalError }}</p>
-            </div>
-
-            <!-- Actions -->
-            <div class="flex justify-end space-x-3 pt-4">
-              <Button
-                type="button"
-                @click="closeModal"
-                variant="outline"
-              >
-                Annuler
-              </Button>
-              <Button
-                type="submit"
-                :disabled="modalLoading"
-              >
-                <span v-if="modalLoading">Enregistrement...</span>
-                <span v-else>{{ showCreateModal ? 'Créer' : 'Modifier' }}</span>
-              </Button>
-            </div>
-          </form>
-        </div>
-      </div>
-    </div>
+    <!-- Modal d'affichage des identifiants -->
+    <ClientCredentialsModal
+      :is-open="showCredentialsModal"
+      :client="createdClient"
+      :generated-password="generatedPassword"
+      @close="closeCredentialsModal"
+      @password-regenerated="handlePasswordRegenerated"
+    />
   </div>
 </template>
 
@@ -256,38 +156,18 @@ import { useAuthStore } from '@/stores/auth'
 import { useClientStore } from '@/stores/client'
 import Button from '@/components/ui/Button.vue'
 import Input from '@/components/ui/Input.vue'
+import CreateClientModal from '@/components/ui/CreateClientModal.vue'
+import ClientCredentialsModal from '@/components/ui/ClientCredentialsModal.vue'
 
 const authStore = useAuthStore()
 const clientStore = useClientStore()
 
 const searchQuery = ref('')
 const statusFilter = ref('')
-const showCreateModal = ref(false)
-const showEditModal = ref(false)
-const modalLoading = ref(false)
-const modalError = ref('')
-
-const clientForm = ref({
-  firstName: '',
-  lastName: '',
-  email: '',
-  phone: '',
-  address: '',
-  assignedAgentId: null as number | null,
-})
-
-const formErrors = ref({
-  firstName: '',
-  lastName: '',
-  email: '',
-  phone: '',
-})
-
-// Mock data pour les agents disponibles (à remplacer par une vraie API)
-const availableAgents = ref([
-  { id: 1, firstName: 'Jean', lastName: 'Dupont', fullName: 'Jean Dupont' },
-  { id: 2, firstName: 'Marie', lastName: 'Martin', fullName: 'Marie Martin' },
-])
+const showCreateClientModal = ref(false)
+const showCredentialsModal = ref(false)
+const createdClient = ref<any>(null)
+const generatedPassword = ref('')
 
 const filteredClients = computed(() => {
   let clients = clientStore.clients
@@ -320,60 +200,33 @@ onMounted(async () => {
   }
 })
 
-const editClient = (client: any) => {
-  clientForm.value = {
-    firstName: client.firstName,
-    lastName: client.lastName,
-    email: client.email || '',
-    phone: client.phone || '',
-    address: client.address || '',
-    assignedAgentId: client.assignedAgentId,
-  }
-  showEditModal.value = true
+// Gestion du modal de création de client
+const closeCreateClientModal = () => {
+  showCreateClientModal.value = false
 }
 
-const closeModal = () => {
-  showCreateModal.value = false
-  showEditModal.value = false
-  modalError.value = ''
-  // Reset form
-  Object.keys(clientForm.value).forEach(key => {
-    (clientForm.value as any)[key] = ''
-  })
-  // Reset errors
-  Object.keys(formErrors.value).forEach(key => {
-    (formErrors.value as any)[key] = ''
-  })
+const handleClientCreated = (newClient: any) => {
+  // Stocker les informations du client créé
+  createdClient.value = newClient
+  generatedPassword.value = newClient.generatedPassword || ''
+
+  // Fermer le modal de création
+  showCreateClientModal.value = false
+
+  // Ouvrir le modal des credentials
+  showCredentialsModal.value = true
 }
 
-const handleSubmit = async () => {
-  modalLoading.value = true
-  modalError.value = ''
+const closeCredentialsModal = () => {
+  showCredentialsModal.value = false
+  createdClient.value = null
+  generatedPassword.value = ''
 
-  try {
-    // Validation basique
-    if (!clientForm.value.firstName.trim()) {
-      formErrors.value.firstName = 'Le prénom est requis'
-      return
-    }
+  // Recharger la liste des clients après avoir fermé le modal
+  clientStore.fetchClients()
+}
 
-    if (!clientForm.value.lastName.trim()) {
-      formErrors.value.lastName = 'Le nom est requis'
-      return
-    }
-
-    if (showCreateModal.value) {
-      await clientStore.createClient(clientForm.value)
-    } else {
-      // Pour l'édition, il faudrait passer l'ID du client
-      // await clientStore.updateClient(clientId, clientForm.value)
-    }
-
-    closeModal()
-  } catch (error: any) {
-    modalError.value = error.response?.data?.message || 'Une erreur s\'est produite'
-  } finally {
-    modalLoading.value = false
-  }
+const handlePasswordRegenerated = (newPassword: string) => {
+  generatedPassword.value = newPassword
 }
 </script>

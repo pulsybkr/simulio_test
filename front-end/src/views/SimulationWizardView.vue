@@ -742,7 +742,7 @@ const previousStep = () => {
 }
 
 const createSimulation = async () => {
-  if (!simulationName.value.trim()) {
+  if (!simulationName.value.trim() || isCreating.value) {
     return
   }
 

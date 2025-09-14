@@ -198,7 +198,5 @@ const formatDate = (dateString: string) => {
 }
 
 const createSimulation = () => {
-  // Rediriger vers le wizard de simulation avec le client pré-sélectionné
-  // TODO: Implémenter la logique de redirection
 }
 </script>

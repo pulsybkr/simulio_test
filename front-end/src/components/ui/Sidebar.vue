@@ -78,8 +78,9 @@
       <div class="border-t border-gray-200 p-4">
         <div class="flex items-center">
           <div
-            class="flex-shrink-0 w-8 h-8 bg-indigo-600 rounded-full flex items-center justify-center text-white text-sm font-medium cursor-pointer"
-            @click="showUserMenu = !showUserMenu"
+            class="flex-shrink-0 w-8 h-8 bg-indigo-600 rounded-full flex items-center justify-center text-white text-sm font-medium cursor-pointer hover:bg-indigo-700 transition-colors duration-200"
+            @click="handleLogout"
+            title="Se déconnecter"
           >
             {{ userInitials }}
           </div>
@@ -95,27 +96,14 @@
 
           <button
             v-if="!isCollapsed"
-            @click="showUserMenu = !showUserMenu"
+            @click="handleLogout"
             class="ml-2 flex-shrink-0 p-1 text-gray-400 hover:text-gray-600 focus:outline-none focus:ring-2 focus:ring-indigo-500 rounded-md"
+            title="Se déconnecter"
           >
-            <ChevronUp v-if="showUserMenu" class="h-4 w-4" />
-            <ChevronDown v-else class="h-4 w-4" />
+            <LogOut class="h-4 w-4" />
           </button>
         </div>
 
-        <!-- User Menu Dropdown -->
-        <div
-          v-if="showUserMenu && !isCollapsed"
-          class="mt-2 py-1 bg-white border border-gray-200 rounded-md shadow-lg"
-        >
-          <button
-            @click="handleLogout"
-            class="w-full text-left px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center"
-          >
-            <LogOut class="h-4 w-4 mr-2" />
-            Se déconnecter
-          </button>
-        </div>
       </div>
     </div>
 
@@ -144,28 +132,13 @@
         <!-- Mobile user menu -->
         <div class="relative">
           <button
-            @click="showMobileUserMenu = !showMobileUserMenu"
-            class="w-8 h-8 bg-indigo-600 rounded-full flex items-center justify-center text-white text-sm font-medium"
+            @click="handleLogout"
+            class="w-8 h-8 bg-indigo-600 rounded-full flex items-center justify-center text-white text-sm font-medium hover:bg-indigo-700 transition-colors duration-200"
+            title="Se déconnecter"
           >
             {{ userInitials }}
           </button>
           
-          <div
-            v-if="showMobileUserMenu"
-            class="absolute right-0 mt-2 w-48 py-1 bg-white border border-gray-200 rounded-md shadow-lg z-50"
-          >
-            <div class="px-3 py-2 border-b border-gray-200">
-              <p class="text-sm font-medium text-gray-900">{{ authStore.fullName }}</p>
-              <p class="text-xs text-gray-500">{{ authStore.role }}</p>
-            </div>
-            <button
-              @click="handleLogout"
-              class="w-full text-left px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center"
-            >
-              <LogOut class="h-4 w-4 mr-2" />
-              Se déconnecter
-            </button>
-          </div>
         </div>
       </div>
 
@@ -177,46 +150,15 @@
   </div>
 
   <!-- Logout Confirmation Modal -->
-  <div
-    v-if="showLogoutModal"
-    class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50 flex items-center justify-center"
-  >
-    <div class="bg-white p-6 rounded-lg shadow-xl max-w-md w-full mx-4">
-      <div class="flex items-center mb-4">
-        <div class="flex-shrink-0">
-          <AlertTriangle class="h-6 w-6 text-yellow-600" />
-        </div>
-        <div class="ml-3">
-          <h3 class="text-lg font-medium text-gray-900">
-            Confirmer la déconnexion
-          </h3>
-        </div>
-      </div>
-      
-      <p class="text-sm text-gray-500 mb-6">
-        Êtes-vous sûr de vouloir vous déconnecter ? Vous devrez vous reconnecter pour accéder à votre compte.
-      </p>
-      
-      <div class="flex justify-end space-x-3">
-        <Button
-          @click="showLogoutModal = false"
-          variant="outline"
-        >
-          Annuler
-        </Button>
-        <Button
-          @click="confirmLogout"
-          variant="destructive"
-        >
-          Se déconnecter
-        </Button>
-      </div>
-    </div>
-  </div>
+  <LogoutModal
+    :isOpen="showLogoutModal"
+    @close="showLogoutModal = false"
+    @confirmed="showLogoutModal = false"
+  />
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { 
@@ -225,23 +167,18 @@ import {
   BarChart3, 
   Plus, 
   ChevronLeft, 
-  ChevronRight, 
-  ChevronUp, 
-  ChevronDown,
+  ChevronRight,
   Menu,
   X,
-  LogOut,
-  AlertTriangle
+  LogOut
 } from 'lucide-vue-next'
-import Button from './Button.vue'
+import LogoutModal from './LogoutModal.vue'
 
 const router = useRouter()
 const authStore = useAuthStore()
 
 const isCollapsed = ref(false)
 const isMobileMenuOpen = ref(false)
-const showUserMenu = ref(false)
-const showMobileUserMenu = ref(false)
 const showLogoutModal = ref(false)
 
 const navigationItems = computed(() => {
@@ -303,37 +240,10 @@ const closeMobileMenu = () => {
 }
 
 const handleLogout = () => {
-  showUserMenu.value = false
-  showMobileUserMenu.value = false
   showLogoutModal.value = true
 }
 
-const confirmLogout = async () => {
-  try {
-    await authStore.logout()
-    showLogoutModal.value = false
-    router.push('/login')
-  } catch (error) {
-    console.error('Erreur lors de la déconnexion:', error)
-  }
-}
 
-// Fermer les menus quand on clique ailleurs
-const handleClickOutside = (event: Event) => {
-  const target = event.target as HTMLElement
-  if (!target.closest('.user-menu')) {
-    showUserMenu.value = false
-    showMobileUserMenu.value = false
-  }
-}
-
-onMounted(() => {
-  document.addEventListener('click', handleClickOutside)
-})
-
-onUnmounted(() => {
-  document.removeEventListener('click', handleClickOutside)
-})
 </script>
 
 <style scoped>
