@@ -87,6 +87,10 @@
 git clone https://github.com/pulsybkr/simulio_test.git
 cd simulio_test
 setup.bat
+# Puis exécutez les migrations et créez un admin :
+cd back-end
+npm run migration:run
+# Lancez start-dev.bat et créez le premier compte (sera admin)
 ```
 
 **Linux/Mac :**
@@ -95,6 +99,10 @@ git clone https://github.com/pulsybkr/simulio_test.git
 cd simulio_test
 chmod +x setup.sh
 ./setup.sh
+# Puis exécutez les migrations et créez un admin :
+cd back-end
+npm run migration:run
+# Lancez ./start-dev.sh et créez le premier compte (sera admin)
 ```
 
 #### 📋 Installation Détaillée
@@ -147,6 +155,28 @@ DB_DATABASE=simulio
 SIMULATION_API_URL=http://localhost:8000
 ```
 
+##### 4.5 Migrations de base de données
+```bash
+cd back-end
+npm run migration:run
+```
+
+##### 4.6 Créer un compte administrateur
+```bash
+# Option 1: Via l'interface web (recommandé)
+# Allez sur http://localhost:5173 et créez un compte
+# Le premier compte créé sera automatiquement administrateur
+
+# Option 2: Via l'API (programmatique)
+curl -X POST http://localhost:3333/auth/register \
+  -H "Content-Type: application/json" \
+  -d '{
+    "email": "admin@simulio.com",
+    "password": "Admin123!",
+    "password_confirmation": "Admin123!"
+  }'
+```
+
 Puis lancez le serveur :
 ```bash
 npm run dev
@@ -187,11 +217,67 @@ start-dev.bat
 
 Ces scripts ouvriront automatiquement 3 terminaux pour chaque service.
 
-### 🔑 Comptes de Test
+### 🛠️ Commandes Backend Disponibles
+
+Une fois dans le dossier `back-end`, vous pouvez utiliser ces commandes :
+
+```bash
+# Développement
+npm run dev              # Serveur avec hot reload
+
+# Base de données
+npm run migration:run    # Exécuter les migrations
+npm run migration:rollback # Annuler la dernière migration
+npm run db:seed          # Alimenter la base avec des données de test
+
+# Qualité du code
+npm run lint             # Vérifier le code
+npm run format           # Formater le code
+npm run typecheck        # Vérifier les types TypeScript
+
+# Tests
+npm run test             # Lancer les tests
+```
+
+### 🔑 Comptes et Rôles
+
+#### 👑 Création de comptes administrateur
+**Le premier compte créé sur l'application sera automatiquement administrateur.**
+
+Vous pouvez créer un compte admin de deux façons :
+
+1. **Via l'interface web** (recommandé) :
+   - Allez sur http://localhost:5173
+   - Cliquez sur "S'inscrire"
+   - Remplissez le formulaire
+   - Le premier compte créé aura automatiquement le rôle administrateur
+
+2. **Via l'API** :
+   ```bash
+   curl -X POST http://localhost:3333/auth/register \
+     -H "Content-Type: application/json" \
+     -d '{
+       "email": "admin@simulio.com",
+       "password": "Admin123!",
+       "password_confirmation": "Admin123!"
+     }'
+   ```
+
+#### 🎭 Rôles disponibles
+- **Administrateur** : Accès complet à toutes les fonctionnalités
+- **Agent** : Peut créer et gérer ses propres clients et simulations
+- **Utilisateur** : Fonctionnalités limitées (lecture seule)
+
+#### 📝 Comptes de démonstration
+Si vous utilisez le dump de base de données fourni :
 
 **Administrateur :**
 - Email: `admin@simulio.com`
 - Mot de passe: `Admin123!`
+
+**Agent :**
+- Email: `agent@simulio.com`
+- Mot de passe: `Agent123!`
 
 ## 📁 Structure du Projet
 

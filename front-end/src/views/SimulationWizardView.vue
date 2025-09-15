@@ -1,6 +1,6 @@
 <template>
   <div class="p-6">
-    
+
     <div class="mb-8">
       <div class="flex items-center justify-between">
         <div>
@@ -54,10 +54,9 @@
               'bg-indigo-600': step.id < currentStep,
               'bg-gray-200': step.id >= currentStep
             }"
-          ></div>
+          />
         </div>
       </div>
-    </div>
 
     <Card class="p-6">
       <div v-if="currentStep === 1">

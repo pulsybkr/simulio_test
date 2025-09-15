@@ -99,11 +99,24 @@ export default class SimulationsController {
 
       let clientId = payload.clientId
 
-      // Les clients ne peuvent pas créer de simulations
+      // Gestion des permissions pour les clients
       if (user.role === 'client') {
-        return response.forbidden({
-          message: 'Vous n\'avez pas les permissions pour créer une simulation.',
-        })
+        const client = await Client.findBy('email', user.email)
+        if (!client) {
+          return response.forbidden({
+            message: 'Client non trouvé.',
+          })
+        }
+
+        // Les clients ne peuvent créer des simulations que pour eux-mêmes
+        if (clientId && clientId !== client.id) {
+          return response.forbidden({
+            message: 'Vous ne pouvez créer des simulations que pour vous-même.',
+          })
+        }
+
+        // Si pas de clientId spécifié, utiliser le client actuel
+        clientId = client.id
       }
 
       if (clientId) {
@@ -249,9 +262,12 @@ export default class SimulationsController {
       }
 
       if (user.role === 'client') {
-        return response.forbidden({
-          message: 'Vous n\'avez pas les permissions pour modifier une simulation',
-        })
+        const client = await Client.findBy('email', user.email)
+        if (!client || simulation.clientId !== client.id) {
+          return response.forbidden({
+            message: 'Vous ne pouvez modifier que vos propres simulations',
+          })
+        }
       } else if (user.role === 'agent') {
         if (simulation.clientId) {
           const client = await Client.find(simulation.clientId)
@@ -355,9 +371,12 @@ export default class SimulationsController {
       }
 
       if (user.role === 'client') {
-        return response.forbidden({
-          message: 'Vous n\'avez pas les permissions pour supprimer une simulation',
-        })
+        const client = await Client.findBy('email', user.email)
+        if (!client || simulation.clientId !== client.id) {
+          return response.forbidden({
+            message: 'Vous ne pouvez supprimer que vos propres simulations',
+          })
+        }
       } else if (user.role === 'agent') {
         const client = await Client.find(simulation.clientId)
         if (!client || client.assignedAgentId !== user.id) {

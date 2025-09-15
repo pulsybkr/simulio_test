@@ -12,6 +12,9 @@
     "lint": "eslint .",
     "format": "prettier --write .",
     "typecheck": "tsc --noEmit",
+    "migration:run": "node ace migration:run",
+    "migration:rollback": "node ace migration:rollback",
+    "db:seed": "node ace db:seed",
     "test:logs": "curl -s http://localhost:3333/health && echo '' && curl -s -X POST http://localhost:3333/auth/login -H 'Content-Type: application/json' -d '{\"email\":\"test@example.com\",\"password\":\"test\"}' && echo ''",
     "test:logs:js": "node test-logs.js"
   },

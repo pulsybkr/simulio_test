@@ -608,36 +608,6 @@
       </div>
     </div>
 
-    <!-- Modal de création de variante en cours -->
-    <Modal
-      :is-open="isCreatingVariant"
-      title="Modification des paramètres en cours..."
-      size="md"
-      @close="() => {}"
-    >
-      <template #header>
-        <h3 class="text-lg font-medium text-gray-900">
-          Modification des paramètres en cours...
-        </h3>
-      </template>
-
-      <div class="text-center py-6">
-        <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto mb-4"></div>
-        <h3 class="text-lg font-medium text-gray-900 mb-2">
-          Calcul de votre simulation
-        </h3>
-        <p class="text-sm text-gray-600 mb-4">
-          Nous créons votre variante et effectuons les calculs financiers.
-          Cela peut prendre quelques instants...
-        </p>
-        <div class="flex items-center justify-center space-x-2 text-sm text-gray-500">
-          <svg class="w-4 h-4 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
-          </svg>
-          <span>Calcul en cours...</span>
-        </div>
-      </div>
-    </Modal>
 
     <Modal
       :is-open="showEditModal"
@@ -657,8 +627,8 @@
             <div class="ml-3">
               <h4 class="text-sm font-medium text-blue-900">Modifier les paramètres</h4>
               <p class="mt-1 text-sm text-blue-700">
-                Modifiez les paramètres pour créer une nouvelle simulation basée sur celle-ci.
-                La simulation originale restera inchangée.
+                Modifiez les paramètres de votre simulation actuelle.
+                Les calculs seront automatiquement relancés avec les nouveaux paramètres.
               </p>
             </div>
           </div>
@@ -1029,8 +999,8 @@
             @click="saveParameters"
             :disabled="isUpdating"
           >
-            <span v-if="isUpdating">{{ authStore.role === 'client' ? 'Création en cours...' : 'Mise à jour...' }}</span>
-            <span v-else>{{ authStore.role === 'client' ? 'Recalculer' : 'Sauvegarder et recalculer' }}</span>
+            <span v-if="isUpdating">{{ authStore.role === 'client' ? 'Mise à jour en cours...' : 'Mise à jour...' }}</span>
+            <span v-else>{{ authStore.role === 'client' ? 'Mettre à jour' : 'Sauvegarder et recalculer' }}</span>
           </Button>
         </div>
       </template>
@@ -1171,8 +1141,6 @@ const isAssigningClient = ref(false)
 const assignmentError = ref('')
 const createdClient = ref<any>(null)
 const generatedPassword = ref('')
-const isCreatingVariant = ref(false)
-const newSimulationId = ref<number | null>(null)
 
 const simulation = computed(() => simulationStore.currentSimulation)
 const clients = computed(() => clientStore.clients)
@@ -1214,35 +1182,6 @@ const stopPolling = () => {
   }
 }
 
-const startPollingForNewSimulation = async (simulationId: number) => {
-  return new Promise<void>((resolve) => {
-    const pollInterval = setInterval(async () => {
-      try {
-        const updatedSimulation = await simulationStore.fetchSimulation(simulationId)
-
-        if (updatedSimulation.status === 'completed') {
-          clearInterval(pollInterval)
-          isCreatingVariant.value = false
-          newSimulationId.value = null
-          await router.push(`/simulations/${simulationId}`)
-          resolve()
-        } else if (updatedSimulation.status === 'failed') {
-          clearInterval(pollInterval)
-          isCreatingVariant.value = false
-          newSimulationId.value = null
-          console.error('La simulation a échoué')
-          resolve()
-        }
-      } catch (error) {
-        console.error('Erreur lors du polling de la nouvelle simulation:', error)
-        clearInterval(pollInterval)
-        isCreatingVariant.value = false
-        newSimulationId.value = null
-        resolve()
-      }
-    }, 2000)
-  })
-}
 
 onMounted(async () => {
   const simulationId = route.params.id as string
@@ -1261,8 +1200,6 @@ onMounted(async () => {
 
 onUnmounted(() => {
   stopPolling()
-  isCreatingVariant.value = false
-  newSimulationId.value = null
 })
 
 const openEditModal = () => {
@@ -1279,36 +1216,26 @@ const closeEditModal = () => {
 
 const saveParameters = async () => {
   if (!editParameters.value || !simulation.value) return
-  
+
   isUpdating.value = true
   try {
-    if (authStore.role === 'client') {
-      isCreatingVariant.value = true
-
-      const newSimulationName = `${simulation.value.name} - Variante`
-      const newSimulationData = {
-        name: newSimulationName,
-        parameters: editParameters.value,
-        clientId: simulation.value.clientId
-      }
-
-      const newSimulation = await simulationStore.createSimulation(newSimulationData)
-      newSimulationId.value = newSimulation.id
-
-      closeEditModal()
-
-      await startPollingForNewSimulation(newSimulation.id)
-
-    } else {
+    // Les clients peuvent maintenant modifier leur simulation actuelle
     await simulationStore.updateSimulation(
       simulation.value.id,
       { parameters: editParameters.value }
     )
+
+    // Fermer la modal
     closeEditModal()
+
+    // Relancer le polling si nécessaire pour voir les nouveaux résultats
     if (simulation.value?.status === 'processing' || simulation.value?.status === 'pending') {
       startPolling()
-      }
     }
+
+    // Forcer un rechargement de la simulation pour voir les changements
+    await simulationStore.fetchSimulation(simulation.value.id)
+
   } catch (error) {
     console.error('Erreur lors de la mise à jour:', error)
     isCreatingVariant.value = false
