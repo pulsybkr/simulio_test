@@ -109,8 +109,8 @@ npm run migration:run
 
 ##### 1. Cloner le projet
 ```bash
-git clone <votre-repo>
-cd simulio
+git clone https://github.com/pulsybkr/simulio_test.git
+cd simulio_test
 ```
 
 ##### 2. Base de données MySQL
