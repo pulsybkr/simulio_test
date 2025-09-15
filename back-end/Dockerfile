@@ -14,5 +14,5 @@ RUN chmod +x start.sh
 
 EXPOSE 3333
 
-CMD ["./start.sh"]
+CMD ["bash", "./start.sh"]
 
