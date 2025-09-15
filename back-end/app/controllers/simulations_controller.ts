@@ -476,6 +476,7 @@ export default class SimulationsController {
       const simulation = await Simulation.find(simulationId)
       if (simulation) {
         simulation.status = 'failed'
+        console.error('failed:', error)
         await simulation.save()
       }
       console.error('Erreur lors du traitement de la simulation:', error)
