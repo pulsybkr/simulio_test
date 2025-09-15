@@ -40,6 +40,7 @@ Le projet est composé de 4 services :
 - **Port** : 3333
 - **Tech** : Node.js + AdonisJS + TypeScript
 - **Auto-reload** : ✅ Activé
+- **Migrations** : ✅ Exécutées automatiquement au démarrage
 
 ### 🎨 Front-end (Vue.js)
 - **Port** : 5173
@@ -127,8 +128,12 @@ docker-compose exec simulation pip install <package-name>
 ```
 
 ### Migrations de base de données
+
+**✅ Automatiques** : Les migrations sont exécutées automatiquement au démarrage du backend.
+
+Commandes manuelles disponibles :
 ```bash
-# Exécuter les migrations
+# Exécuter les migrations manuellement
 docker-compose exec backend npm run migration:run
 
 # Rollback des migrations

@@ -30,6 +30,7 @@ services:
       - "3333:3333"
     environment:
       NODE_ENV: development
+      APP_KEY: development_app_key
       PORT: 3333
       HOST: 0.0.0.0
       DB_CONNECTION: mysql
@@ -52,7 +53,6 @@ services:
         condition: service_started
     networks:
       - simulio_network
-    command: npm run dev
 
   # Front-end Vue.js
   frontend:
