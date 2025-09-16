@@ -12,7 +12,7 @@ Ce README explique comment lancer l'ensemble du projet Simulio en mode développ
 1. **Cloner le projet** (si ce n'est pas déjà fait)
    ```bash
    git clone https://github.com/pulsybkr/simulio_test.git
-   cd simulio
+   cd simulio_test
    ```
 
 2. **Lancer tous les services**
